@@ -4,10 +4,9 @@
 #include "gameInfo.h"
 #include "pieceInfo.h"
 #include <vector>
-
+#include <array>
 
 using namespace std;
-
 
 Piece* board[BOARDROWS][BOARDCOLS]{ nullptr }; //change this to board with objects
 std::vector<Piece> whitePieces;
@@ -18,7 +17,7 @@ Piece* storePiece(int r, int c, PieceType type) {
 
 	// assume row greater than 4 is white
 	// this is where we can store differnt objects based on type but for not itll be on Piece class later can do inhertiance
-	bool is_white = (r>4)?false:true;
+	bool is_white = (r<4)?false:true;
 	Piece piece = Piece(r, c, is_white, type);
 	
 	if (is_white) {
@@ -64,6 +63,18 @@ void initBoardAndVectors(Piece* b1[BOARDROWS][BOARDCOLS]) {
 	};
 };
 
+//test move sequence
+void move(int ogR, int ogC, int newR, int newC) {
+	Piece* p = board[ogR][ogC];
+	p->toString();
+	board[newR][newC] = p;
+	p->move(newR, newC);
+	p->toString();
+	
+	board[ogR][ogC] = nullptr;
+	// auto empties old spot isnt accurate for castling
+}
+
 void printBoard(Piece* b1[BOARDROWS][BOARDCOLS]) {
 	for (int r{}; r < BOARDROWS; r++) {
 		for (int c{}; c < BOARDCOLS; c++) {
@@ -80,10 +91,28 @@ void printBoard(Piece* b1[BOARDROWS][BOARDCOLS]) {
 	};
 };
 
+void printMoves(vector<array<int,2>> list) {
+	
+	for (int i{}; i < list.size(); i++) {
+		cout << "(" << list[i][0] << ", " << list[i][1] << ") " << endl;
+	}
+}
+
 int main(){
 
+	bool game = true;
+
 	initBoardAndVectors(board);
+
+	Piece p = blackPieces[9];
+	p.toString();
+	printMoves(p.horizontalMovement());
+
 	printBoard(board);
+
+	while (game) {
+
+	}
 	return 0;
 	
 };

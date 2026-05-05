@@ -4,4 +4,4 @@ project(Chess)
 
 add_executable(Chess
     "main.cpp"
-)
+ "piece.cpp")

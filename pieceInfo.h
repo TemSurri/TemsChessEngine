@@ -6,18 +6,18 @@ using namespace std;
 
 class Piece {
 private:
-	int x{};
-	int y{};
+	int r{};
+	int c{};
 	bool is_white;
 	int type;
 public:
 	Piece(int x, int y, bool white, PieceType type)
-		: x{ x }, y{ y }, is_white{ white }, type{ type } {
+		: r{ x }, c{ y }, is_white{ white }, type{ type } {
 	};
 
 	void move(int x, int y) {
-		this->y = y;
-		this->x = x;
+		this->r = x;
+		this->c = y;
 	};
 
 	void changeType(PieceType type) {
@@ -31,6 +31,24 @@ public:
 	bool getColor() {
 		return is_white;
 	}
+
+	int getCol() {
+		return c;
+	}
+
+	int getRow() {
+		return r;
+	}
+
+	void toString() {
+		std::cout << type<<endl << "Row : " << r << endl << "Col : " << c << endl;
+		return;
+	}
+
+	vector< std::array<int, 2>> horizontalMovement();
+	vector< std::array<int, 2>> verticalMovement();
+	vector< std::array<int, 2>> diagonalMovement();
+	vector< std::array<int, 2>>oneStep();
 
 };
 // map of board with pointers to the pieces for quick search up
