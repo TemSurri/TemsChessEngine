@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include "gameInfo.h"
+#include <array>
+#pragma once
 
 using namespace std;
 

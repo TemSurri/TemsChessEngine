@@ -5,24 +5,6 @@
 #include <array>
 #include <cstdlib>
 
-
-vector< std::array<int, 2>> Piece::verticalMovement() {
-	int lowerbound = BOARDROWS;
-
-	vector< std::array<int, 2>> theoretical_moves;
-
-	//total column
-	for (int i{}; i < lowerbound; i++) {
-		if (i == r) {
-			continue;
-		}
-		theoretical_moves.push_back({ i, c });
-	}
-
-	return theoretical_moves;
-
-};
-
 vector<std::array<int, 2>> Piece::oneStep() {
 
 	vector< std::array<int, 2>> theoretical_moves;
@@ -42,18 +24,84 @@ vector<std::array<int, 2>> Piece::oneStep() {
 
 };
 
-vector< std::array<int, 2>> Piece::horizontalMovement() {
-	
+vector< std::array<int, 2>> Piece::verticalMovement() {
 	int lowerbound = BOARDROWS;
+	int upperbound = {};
 
 	vector< std::array<int, 2>> theoretical_moves;
 
-	// total row
-	for (int i{}; i < lowerbound; i++) {
-		if (i == c) {
-			continue;
+	for (int i{ 1 }; i < abs(r - lowerbound); i++) {
+		if (board[r + i][c]) {
+
+			if (board[r + i][c]->is_white == is_white) {
+				break;
+			}
+			else if (board[r + i][c]->is_white != is_white) {
+				theoretical_moves.push_back({ r + i, c });
+				break;
+			}
+
 		}
-		theoretical_moves.push_back({ r, i });
+		theoretical_moves.push_back({ r + i, c });
+	}
+
+	for (int i{ 1 }; i < abs(r - upperbound) + 1; i++) {
+		if (board[r - i][c]) {
+
+			if (board[r - i][c]->is_white == is_white) {
+				break;
+			}
+			else if (board[r - i][c]->is_white != is_white) {
+				theoretical_moves.push_back({ r - i, c });
+				break;
+			}
+
+		}
+		theoretical_moves.push_back({ r - i, c });
+	}
+
+	return theoretical_moves;
+
+};
+
+vector< std::array<int, 2>> Piece::horizontalMovement() {
+	
+	int rightbound = BOARDCOLS;
+	int leftbound = 0;
+
+
+	vector< std::array<int, 2>> theoretical_moves;
+
+	
+	for (int i{1}; i < abs(c-rightbound); i++) {
+
+		if (board[r][c+i]) {
+
+			if (board[r][c +i ]->is_white == is_white) {
+				break;
+			}
+			else if (board[r ][c + i]->is_white != is_white) {
+				theoretical_moves.push_back({ r , c + i});
+				break;
+			}
+
+		}
+		theoretical_moves.push_back({ r, c+i });
+	}
+
+	for (int i{1}; i < abs(c-leftbound)+1; i++) {
+		if (board[r][c - i]) {
+
+			if (board[r][c - i]->is_white == is_white) {
+				break;
+			}
+			else if (board[r][c - i]->is_white != is_white) {
+				theoretical_moves.push_back({ r , c - i });
+				break;
+			}
+
+		}
+		theoretical_moves.push_back({ r, c-i });
 	}
 
 	return theoretical_moves;
@@ -71,55 +119,108 @@ vector< std::array<int, 2>> Piece::diagonalMovement() {
 	vector< std::array<int, 2>> theoretical_moves;
 	
 	//top right
+	int iterator{};
+
 	if (abs(upperbound-r) > abs(rightbound-c)) {
-		for (int i{ 1 }; i < abs(rightbound - c) + 1; i++) {
-			theoretical_moves.push_back({ r-i, c+i });
-		}
+		iterator = abs(rightbound - c);
 	}
 	else {
-		for (int i{ 1 }; i < abs(upperbound - r) + 1; i++) {
-			theoretical_moves.push_back({ r-i, c+i });
+		iterator = abs(upperbound - r);
+	}
+
+	for (int i{ 1 }; i < iterator + 1; i++) {
+
+		//checking occupany
+		if (board[r - i][c + i]) {
+
+			if (board[r - i][c + i]->is_white == is_white) {
+				break;
+			}
+			else if (board[r - i][c + i]->is_white != is_white) {
+				theoretical_moves.push_back({ r - i, c + i });
+				break;
+			}
 		}
 
+		theoretical_moves.push_back({ r - i, c + i });
 	}
-	
+
 	//top left
 	if (abs(upperbound - r) > abs(leftbound - c)) {
-		for (int i{ 1 }; i < abs(leftbound - c) + 1; i++) {
-			theoretical_moves.push_back({ r - i, c - i });
-		}
+		iterator = abs(leftbound - c);
 	}
 	else {
-		for (int i{ 1 }; i < abs(upperbound - r) + 1; i++) {
-			theoretical_moves.push_back({ r - i, c - i });
+		iterator = abs(upperbound - r);
+	}
+
+	for (int i{ 1 }; i < iterator + 1; i++) {
+
+		//checking occupany
+		if (board[r - i][c - i]) {
+
+			if (board[r - i][c - i]->is_white == is_white) {
+				break;
+			}
+			else if (board[r - i][c - i]->is_white != is_white) {
+				theoretical_moves.push_back({ r - i, c - i });
+				break;
+			}
 		}
+
+		theoretical_moves.push_back({ r - i, c - i });
 	}
 	
 	//bottom right 
 	if (abs(lowerbound - r) > abs(rightbound - c)) {
-		for (int i{ 1 }; i < abs(rightbound - c) + 1; i++) {
-			theoretical_moves.push_back({ r + i, c + i });
-		}
+		iterator = abs(rightbound - c);
 	}
 	else {
-		for (int i{ 1 }; i < abs(lowerbound - r) + 1; i++) {
-			theoretical_moves.push_back({ r + i, c + i });
+		iterator = abs(lowerbound - r);
+	}
+
+	for (int i{ 1 }; i <iterator + 1; i++) {
+
+
+		//checking occupany
+		if (board[r + i][c + i]) {
+
+			if (board[r + i][c + i]->is_white == is_white) {
+				break;
+			}
+			else if (board[r + i][c + i]->is_white != is_white) {
+				theoretical_moves.push_back({ r + i, c + i });
+				break;
+			}
 		}
 
+		theoretical_moves.push_back({ r + i, c + i });
 	}
 	
 	//bottom left 
 	if (abs(lowerbound - r) > abs(leftbound - c)) {
-		for (int i{ 1 }; i < abs(leftbound - c) + 1; i++) {
-			theoretical_moves.push_back({ r + i, c - i });
-		}
+		iterator = abs(leftbound - c);
 	}
 	else {
-		for (int i{ 1 }; i < abs(lowerbound - r) + 1; i++) {
-			theoretical_moves.push_back({ r + i, c - i });
+		iterator = abs(lowerbound - r);
+	}
+
+	for (int i{ 1 }; i < iterator + 1; i++) {
+
+		//checking occupany
+		if (board[r + i][c - i]) {
+
+			if (board[r + i][c - i]->is_white == is_white) {
+				break;
+			}
+			else if (board[r + i][c - i]->is_white != is_white) {
+				theoretical_moves.push_back({ r + i, c - i });
+				break;
+			}
 		}
 
+		theoretical_moves.push_back({ r + i, c - i });
 	}
+
 
 	return theoretical_moves;
 	

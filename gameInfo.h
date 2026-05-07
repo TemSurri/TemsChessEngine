@@ -4,6 +4,8 @@
 #pragma once
 
 #include <iostream>
+#include <array>
+
 
 // TODO: Reference additional headers your program requires here.
 
@@ -22,3 +24,6 @@ enum PieceType {
 constexpr int BOARDROWS = 8;
 constexpr int BOARDCOLS = 8;
 constexpr int pieceNumber = 16;
+
+class Piece; 
+void printBoard(Piece* b1[BOARDROWS][BOARDCOLS]);

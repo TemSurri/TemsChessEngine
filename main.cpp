@@ -104,10 +104,9 @@ int main(){
 
 	initBoardAndVectors(board);
 
-	move(1, 6, 3, 4);
+	move(1, 6, 4, 6);
 
-	printMoves(blackPieces[14].oneStep());
-
+	printMoves(blackPieces[14].horizontalMovement());
 	printBoard(board);
 
 	while (game) {
