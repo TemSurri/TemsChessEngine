@@ -46,6 +46,11 @@ vector<std::array<int, 2>> Piece::oneStep() {
 			}
 		}
 	}
+
+	//this is where i can remove the outlier parts
+
+
+
 	
 	for (int i{}; i < straight_steps.size(); i++) {
 		int r = straight_steps[i][0];
@@ -168,7 +173,6 @@ vector< std::array<int, 2>> Piece::horizontalMovement() {
 	return theoretical_moves;
 };
 
-
 vector< std::array<int, 2>> Piece::diagonalMovement() {
 
 	int upperbound = 0;
@@ -288,4 +292,42 @@ vector< std::array<int, 2>> Piece::diagonalMovement() {
 };
 
 
+vector< std::array<int, 2>> Piece::pseudoLegalMoves() {
 
+	switch (type) {
+
+	case(PieceType::Bishop):
+		return this->diagonalMovement();
+
+	case(PieceType::Pawn):
+		return this->oneStep();
+
+	case(PieceType::King):
+		return this->oneStep();
+
+	case(PieceType::Queen): {
+		vector< std::array<int, 2>> a = this->verticalMovement();
+		vector< std::array<int, 2>> b = this->horizontalMovement();
+		vector< std::array<int, 2>> c = this->diagonalMovement();
+
+		a.insert(a.end(), b.begin(), b.end());
+		a.insert(a.end(), c.begin(), c.end());
+
+		return a;
+	}
+
+	case(PieceType::Rook): {
+
+		vector<std::array<int, 2>> a = this->verticalMovement();
+		vector<std::array<int, 2>> b = this->horizontalMovement();
+
+		a.insert(a.end(), b.begin(), b.end());
+
+		return a;
+	}
+	case(PieceType::Knight): {
+		vector<std::array<int, 2>> a;
+		return a;
+		}
+	}
+}

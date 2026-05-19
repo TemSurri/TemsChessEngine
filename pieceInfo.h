@@ -55,6 +55,9 @@ public:
 	vector< std::array<int, 2>> diagonalMovement();
 	vector< std::array<int, 2>>oneStep();
 
+	// will be dependant on the type
+	vector< std::array<int, 2>> pseudoLegalMoves();
+
 };
 // map of board with pointers to the pieces for quick search up
 extern Piece* board[BOARDROWS][BOARDCOLS];
