@@ -108,11 +108,11 @@ int main(){
 	
 	initBoardAndVectors(board);
 
-	whitePieces[3].toString();
-	printMoves(whitePieces[3].pseudoLegalMoves());
-	move(0, 3, 3, 3);
+	whitePieces[4].toString();
+	printMoves(whitePieces[4].pseudoLegalMoves());
+	move(0, 3, 2, 3);
 	
-	printMoves(whitePieces[3].pseudoLegalMoves());
+	printMoves(whitePieces[4].pseudoLegalMoves());
 	printBoard(board);
 
 	while (game) {

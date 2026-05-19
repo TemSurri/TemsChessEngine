@@ -14,6 +14,12 @@ private:
 	int type;
 	bool upper = is_white;
 	int moves{};
+
+	vector< std::array<int, 2>> horizontalMovement();
+	vector< std::array<int, 2>> verticalMovement();
+	vector< std::array<int, 2>> diagonalMovement();
+	vector< std::array<int, 2>>oneStep();
+
 public:
 	Piece(int x, int y, bool white, PieceType type)
 		: r{ x }, c{ y }, is_white{ white }, type{ type } {
@@ -50,15 +56,13 @@ public:
 		return;
 	}
 
-	vector< std::array<int, 2>> horizontalMovement();
-	vector< std::array<int, 2>> verticalMovement();
-	vector< std::array<int, 2>> diagonalMovement();
-	vector< std::array<int, 2>>oneStep();
-
 	// will be dependant on the type
 	vector< std::array<int, 2>> pseudoLegalMoves();
 
 };
+
+
+
 // map of board with pointers to the pieces for quick search up
 extern Piece* board[BOARDROWS][BOARDCOLS];
 

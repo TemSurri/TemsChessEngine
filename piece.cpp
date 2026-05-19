@@ -49,12 +49,18 @@ vector<std::array<int, 2>> Piece::oneStep() {
 
 	//this is where i can remove the outlier parts
 
-
-
 	
 	for (int i{}; i < straight_steps.size(); i++) {
 		int r = straight_steps[i][0];
 		int c = straight_steps[i][1];
+
+		if (r < 0 || c < 0) {
+			continue;
+		};
+
+		if (r > BOARDROWS || c > BOARDCOLS) {
+			continue;
+		};
 
 		if (board[r][c]) {
 			if (type == PieceType::Pawn) {
@@ -72,6 +78,13 @@ vector<std::array<int, 2>> Piece::oneStep() {
 		int r = diag_steps[i][0];
 		int c = diag_steps[i][1];
 
+		if (r < 0 || c < 0) {
+			continue;
+		};
+
+		if (r > BOARDROWS || c > BOARDCOLS) {
+			continue;
+		};
 	
 		if (board[r][c]) {
 
@@ -290,7 +303,6 @@ vector< std::array<int, 2>> Piece::diagonalMovement() {
 	return theoretical_moves;
 	
 };
-
 
 vector< std::array<int, 2>> Piece::pseudoLegalMoves() {
 
