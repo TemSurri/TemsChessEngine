@@ -15,8 +15,7 @@ So in this new c++ rewrite I introduced:
 
 Instead of iterating through every piece to determine whether a square is occupied, the engine can now directly index the board array in constant time.
 
-# Result
-
+RESULT
 - O(1) move validation, rather than having to iterate over the entire list O(n).
 - minimax searches are significiantly faster, almost instant moves.
 
