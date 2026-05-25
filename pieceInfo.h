@@ -18,7 +18,8 @@ private:
 	vector< std::array<int, 2>> horizontalMovement();
 	vector< std::array<int, 2>> verticalMovement();
 	vector< std::array<int, 2>> diagonalMovement();
-	vector< std::array<int, 2>>oneStep();
+	vector< std::array<int, 2>> oneStep();
+	vector< std::array<int, 2>> horseMovement();
 
 	Piece* (&board)[BOARDROWS][BOARDCOLS];
 

@@ -304,6 +304,52 @@ vector< std::array<int, 2>> Piece::diagonalMovement() {
 	
 };
 
+vector< std::array<int, 2>> Piece::horseMovement() {
+
+	std::vector< std::array<int,2>> moves;
+
+	moves.push_back({r+1, c+2});
+	moves.push_back({r-1, c+2});
+	moves.push_back({r+1, c-2});
+	moves.push_back({r-1, c-2});
+
+	moves.push_back({r+2, c+1});
+	moves.push_back({r-2, c+1});
+	moves.push_back({r+2, c-1});
+	moves.push_back({r-2, c-1});
+
+
+	std::vector< std::array<int,2>> theoretical_moves;
+	for (auto move: moves) {
+		int r = move[0];
+		int c = move[1];
+
+		if (r < 0 || c < 0) {
+			continue;
+		};
+
+		if (r >= BOARDROWS || c >= BOARDCOLS) {
+			continue;
+		};
+
+		if (board[r][c]) {
+
+			if (type == PieceType::Pawn) {
+				continue;
+			}
+			if (board[r][c]->is_white == is_white) {
+				continue;
+			}
+		}
+
+		theoretical_moves.push_back({ r,c });
+	}
+
+	return theoretical_moves;
+
+};
+
+
 vector< std::array<int, 2>> Piece::pseudoLegalMoves() {
 
 	switch (type) {
@@ -338,7 +384,7 @@ vector< std::array<int, 2>> Piece::pseudoLegalMoves() {
 		return a;
 	}
 	case(PieceType::Knight): {
-		vector<std::array<int, 2>> a;
+		vector<std::array<int, 2>> a = this->horseMovement();
 		return a;
 		}
 	}
