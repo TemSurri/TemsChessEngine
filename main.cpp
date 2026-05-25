@@ -7,18 +7,18 @@
 
 int main(){
 
-	bool game = true;
-
 	ClassicChess g = ClassicChess();
 	g.initClassicGame();
 	g.printBoard();
+
+	g.move(0,2,4,4);
+	g.printBoard();
 	
-	g.printWholeMoves();
+	g.generateLegalMoves();
+	g.printAllMoves();
 
-
-	while (game) {
-
-	}
+	
+	
 	return 0;
 	
 };

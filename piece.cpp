@@ -58,7 +58,7 @@ vector<std::array<int, 2>> Piece::oneStep() {
 			continue;
 		};
 
-		if (r > BOARDROWS || c > BOARDCOLS) {
+		if (r >= BOARDROWS || c >= BOARDCOLS) {
 			continue;
 		};
 
@@ -82,7 +82,7 @@ vector<std::array<int, 2>> Piece::oneStep() {
 			continue;
 		};
 
-		if (r > BOARDROWS || c > BOARDCOLS) {
+		if (r >= BOARDROWS || c >= BOARDCOLS) {
 			continue;
 		};
 	

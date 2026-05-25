@@ -5,18 +5,17 @@
 
 class ClassicChess {
 
-	enum States {
 
-		Draw,
+	struct BoardState {
+		bool draw = false;
 
-		WhiteCheckMated,
-		BlackCheckMated,
+		bool whiteCheckMated = false;
+		bool blackCheckMated = false;
 
-		WhiteChecked,
-		BlackChecked,
+		bool whiteChecked = false;
+		bool blackChecked = false;
 
-		standard
-
+		bool normal = false;
 	};
 
 	struct MoveInfo {
@@ -27,7 +26,7 @@ class ClassicChess {
 	};
 
 	private:
-		States game;
+		BoardState game;
 		bool white_upper = true;
 
 		int iterator{};
@@ -106,23 +105,25 @@ class ClassicChess {
 			}
 		}
 
-		void printWholeMoves() {
+		void printAllMoves() {
 
+			std::cout << "White Moves"<<std::endl;
 			for (MoveInfo move: whiteMoves) {
 
 				auto start = move.move[0];
 				auto end = move.move[1];
-
-				std::cout << "Piece("<<move.piece->getType()<<"):   " << '(' << start[0] << ', ' << start[0] << ") -->" << '(' << end[0] << ', ' << end[0] << ')' << endl;
+	
+				std::cout << "Piece("<<move.piece->getType()<<"):   " << '(' << start[0] << ", " << start[1] << ") -->" << '(' << end[0] << ", " << end[1] << ')' << endl;
 
 			}
 
+			std::cout << "Black Moves"<<std::endl;
 			for (MoveInfo move : blackMoves) {
 
 				auto start = move.move[0];
 				auto end = move.move[1];
 
-				std::cout << "Piece(" << move.piece->getType() << "):   " << '(' << start[0] << ', ' << start[0] << ") -->" << '(' << end[0] << ', ' << end[0] << ')' << endl;
+				std::cout << "Piece(" << move.piece->getType() << "):   " << '(' << start[0] << ", " << start[1] << ") -->" << '(' << end[0] << ", " << end[1] << ')' << endl;
 
 			}
 
@@ -133,10 +134,10 @@ class ClassicChess {
 
 		void initClassicGame();
 
-		States virtualMove(MoveInfo move);
-		States calculateState();
-		States gameLoop();
-		States move( bool white );
+		BoardState virtualMove(MoveInfo move);
+		BoardState calculateState();
+		BoardState gameLoop();
+		BoardState move( bool white );
 
 
 		// everything hsould end up private escpet the final startGame()

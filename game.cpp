@@ -67,15 +67,44 @@ void ClassicChess::initClassicGame() {
 
 }
 
-ClassicChess::States ClassicChess::calculateState() {
+ClassicChess::BoardState ClassicChess::calculateState() {
 	//calculate State
 
+	BoardState boardState;
+	
+	for (auto move : this->whiteMoves){
+
+		if ((move.move[1][0] == blackKing->getRow()) && (move.move[1][1] == blackKing->getCol())){
+			boardState.blackChecked = true;
+			if (blackMoves.size() == 0){
+				boardState.blackCheckMated = true;
+			}
+		} 
+	}
+
+	for (auto move : this->blackMoves){
+
+		if ((move.move[1][0] == whiteKing->getRow()) && (move.move[1][1] == whiteKing->getCol())){
+			boardState.whiteChecked = true;
+			if (whiteMoves.size() == 0){
+				boardState.whiteCheckMated = true;
+			}
+
+		}
+	}
+
+
+	if (((whiteMoves.size() == 0) && (blackMoves.size() == 0)) && iterator !=0) {
+		boardState.draw = true;
+	}
+
+	return boardState;
 	// 2
 
 };
 
 //a function that moves the board and then undoes the move
-ClassicChess::States ClassicChess::virtualMove(MoveInfo move) {
+ClassicChess::BoardState ClassicChess::virtualMove(MoveInfo move) {
 
 	// 1
 
@@ -88,7 +117,7 @@ ClassicChess::States ClassicChess::virtualMove(MoveInfo move) {
 	//make move
 	this->move(move);
 	//get state
-	States state = calculateState();
+	BoardState state = calculateState();
 
 	//undo move
 	board[end[0]][end[1]] = taken;
@@ -116,7 +145,15 @@ void ClassicChess::generateLegalMoves() {
 			move.piece = &p;
 			move.move = { start_pos, end };
 
-			white_moves.emplace_back(move);
+			//filter white moves by check
+			
+			BoardState states = virtualMove(move);
+			if (states.whiteChecked) {
+				continue;
+			} else {
+				white_moves.emplace_back(move);
+			}
+
 		}
 	}
 
@@ -136,14 +173,23 @@ void ClassicChess::generateLegalMoves() {
 			move.piece = &p;
 			move.move = { start_pos, end };
 
-			black_moves.emplace_back(move);
+
+			BoardState states = virtualMove(move);
+			if (states.blackChecked) {
+				continue;
+			} else {
+				black_moves.emplace_back(move);
+			}
+
 		}
 	}
 
-	//filter white moves by check
-	// 0
-	//filter black mvoes by check
-	// 0
+
+
+	//link to main 
+	this->blackMoves = black_moves;
+	this->whiteMoves = white_moves;
+
 }
 
 
