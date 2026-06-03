@@ -14,6 +14,7 @@ private:
 	int type;
 	bool upper = is_white;
 	int moves{};
+	
 
 	vector< std::array<int, 2>> horizontalMovement();
 	vector< std::array<int, 2>> verticalMovement();
@@ -24,6 +25,8 @@ private:
 	Piece* (&board)[BOARDROWS][BOARDCOLS];
 
 public:
+	bool captured = false;
+
 	Piece(int x, int y, bool white, PieceType type, Piece* (&board)[BOARDROWS][BOARDCOLS])
 		: r{ x }, c{ y }, is_white{ white }, type{ type }, board{ board } {
 	};
@@ -31,7 +34,6 @@ public:
 	void move(int x, int y) {
 		this->r = x;
 		this->c = y;
-		moves++;
 	};
 
 	void changeType(PieceType type) {
@@ -55,10 +57,17 @@ public:
 	}
 
 	void toString() {
-		std::cout << type<<endl << "Row : " << r << endl << "Col : " << c << endl;
+		std::cout << type<<endl << "Row : " << r << endl << "Col : " << c << endl << is_white << endl;
 		return;
 	}
 
+	void incrementMove() {
+		moves++;
+	}
+
+	void deincrementMove() {
+		moves--;
+	}
 	// will be dependant on the type
 	vector< std::array<int, 2>> pseudoLegalMoves();
 

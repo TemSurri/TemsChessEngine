@@ -8,20 +8,9 @@
 int main(){
 
 	ClassicChess g = ClassicChess();
-	g.initClassicGame();
-	g.printBoard();
-
 
 	
-	g.whitePieces[1].toString();
-	g.generateLegalMoves();
-	g.printAllMoves();
-
-
-
-	g.move_turn();
-	g.printBoard();
-	
+	auto game = g.gameLoop();
 	
 	return 0;
 	

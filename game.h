@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "pieceInfo.h"
+#include "piece.h"
 #include <array>
 
 class ClassicChess {
@@ -16,6 +16,13 @@ class ClassicChess {
 		bool blackChecked = false;
 
 		bool normal = false;
+		bool active = true;
+	};
+
+	enum OutCome {
+		WhiteWin,
+		BlackWin,
+		Draw
 	};
 
 	struct MoveInfo {
@@ -71,32 +78,18 @@ class ClassicChess {
 			};
 		};
 
-		//move for testing and debuggin only
-		void move(int ogR, int ogC, int newR, int newC) {
-			Piece* p = board[ogR][ogC];
-			p->toString();
-			board[newR][newC] = p;
-			p->move(newR, newC);
-			p->toString();
+		
+		void real_move(int ogR, int ogC, int newR, int newC) {
+			if (board[newR][newC]) {
+				board[newR][newC]->captured = true;
+			}
+
+			board[ogR][ogC]->incrementMove();
+			board[ogR][ogC]->move(newR, newC);
+			board[newR][newC] = board[ogR][ogC];
 
 			board[ogR][ogC] = nullptr;
 			// auto empties old spot isnt accurate for castling
-		};
-
-		void move(MoveInfo move) {
-
-			auto start = move.move[0];
-			auto end = move.move[1];
-
-			//piece info update
-			move.piece->move(end[0], end[1]);
-
-			//board update
-			move.piece = board[end[0]][end[1]];
-			
-			// make start empty, obv diff for castling
-			board[start[0]][start[1]] = nullptr;
-
 		};
 
 		void printMoves(vector<array<int, 2>> list) {
@@ -131,15 +124,18 @@ class ClassicChess {
 		}
 
 		Piece* storePiece(int r, int c, PieceType type);
+		bool check(bool for_white);
 		void generateLegalMoves();
-
+		void populateMoves();
 		void initClassicGame();
+		std::vector<MoveInfo> getBlackPseudoMoves();
+		std::vector<MoveInfo> getWhitePseudoMoves();
 
-		BoardState virtualMove(MoveInfo move);
+		bool virtualMove(MoveInfo move);
 		BoardState calculateState();
-		BoardState gameLoop();
+		OutCome gameLoop();
 		BoardState move( bool white );
-		BoardState move_turn();
+		bool move_turn();
 		bool verifyPick(int r, int c);
 		bool verifyMove(int r, int c, Piece* piece);
 

@@ -1,4 +1,4 @@
-#include "pieceInfo.h"
+#include "piece.h"
 #include <iostream>
 #include <vector>
 #include "gameInfo.h"
@@ -350,6 +350,7 @@ vector< std::array<int, 2>> Piece::horseMovement() {
 };
 
 vector< std::array<int, 2>> Piece::pseudoLegalMoves() {
+
 
 	switch (type) {
 

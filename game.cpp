@@ -1,5 +1,4 @@
 #include "game.h"
-#include "pieceInfo.h"
 #include "vector"
 #include <iostream>
 
@@ -12,16 +11,6 @@ Piece* ClassicChess::storePiece(int r, int c, PieceType type) {
 	bool is_white = (upper == white_upper);
 
 	Piece piece = Piece(r, c, is_white, type, board);
-
-	if (type == PieceType::King) {
-
-		if (is_white) {
-			this->whiteKing = &piece;
-		}
-		else if (!is_white) {
-			this->blackKing = &piece;
-		}
-	}
 
 	if (is_white) {
 		whitePieces.push_back(piece);
@@ -61,6 +50,12 @@ void ClassicChess::initClassicGame() {
 				}
 				else if (c == 4) {
 					board[r][c] = storePiece(r, c, King);
+					if ((board[r][c])->getColor()) {
+						this->whiteKing = board[r][c];
+					}
+					else {
+						this->blackKing = board[r][c];
+					}
 				}
 			}
 		};
@@ -68,75 +63,104 @@ void ClassicChess::initClassicGame() {
 
 }
 
-ClassicChess::BoardState ClassicChess::calculateState() {
-	//calculate State
-
-	BoardState boardState;
+bool ClassicChess::check(bool for_white) {
+	 
 	
-	for (auto move : this->whiteMoves){
-
-		if ((move.move[1][0] == blackKing->getRow()) && (move.move[1][1] == blackKing->getCol())){
-			boardState.blackChecked = true;
-			if (blackMoves.size() == 0){
-				boardState.blackCheckMated = true;
+	if (for_white) {
+		auto black_moves = getBlackPseudoMoves();
+		//whiteKing->toString();
+		for (auto move : black_moves) {
+			//std::cout << move.move[1][0] << move.move[1][1] << std::endl;
+			if ((whiteKing->getRow() == move.move[1][0]) && (whiteKing->getCol() == move.move[1][1])) {
+				return true;
 			}
-		} 
-	}
-
-	for (auto move : this->blackMoves){
-
-		if ((move.move[1][0] == whiteKing->getRow()) && (move.move[1][1] == whiteKing->getCol())){
-			boardState.whiteChecked = true;
-			if (whiteMoves.size() == 0){
-				boardState.whiteCheckMated = true;
-			}
-
 		}
+
+		return false;
 	}
+	else {
+		auto white_moves = getWhitePseudoMoves();
+		for (auto move : white_moves) {
+			if ((blackKing->getRow() == move.move[1][0]) && (blackKing->getCol() == move.move[1][1])) {
+				return true;
+			}
+		}
 
-
-	if (((whiteMoves.size() == 0) && (blackMoves.size() == 0)) && iterator !=0) {
-		boardState.draw = true;
+		return false;
 	}
-
-	return boardState;
-	// 2
 
 };
 
+
 //a function that moves the board and then undoes the move
-ClassicChess::BoardState ClassicChess::virtualMove(MoveInfo move) {
+bool ClassicChess::virtualMove(MoveInfo move) {
 
 	// 1
-
-
 	auto start = move.move[0];
 	auto end = move.move[1];
 
 	Piece* taken = board[end[0]][end[1]];
 
-	//make move
-	this->move(move);
-	//get state
-	BoardState state = calculateState();
+	//piece info update
+	move.piece->move(end[0], end[1]);
+	move.piece->incrementMove();
+	board[end[0]][end[1]] = move.piece;
+	board[start[0]][start[1]] = nullptr;
+	if (taken) {
+		taken->captured = true;
+	}
 
+	//get state
+	bool state = check(move.piece->getColor());
+
+	//	
+	
 	//undo move
+	if (taken) {
+		taken->captured = false;
+	}
 	board[end[0]][end[1]] = taken;
 	board[start[0]][start[1]] = move.piece;
 	move.piece->move(start[0], start[1]);
-		
+	move.piece->deincrementMove();
+	
 	//return state
-	return state;
+	return !state;
 
 }
-
-void ClassicChess::generateLegalMoves() {
-
-	// get all pseudo White moves
-
+std::vector<ClassicChess::MoveInfo> ClassicChess::getWhitePseudoMoves() {
 	std::vector<MoveInfo> white_moves;
 
 	for (Piece& p : whitePieces) {
+		if (p.captured) {
+			continue;
+		}
+
+		std::array<int, 2> start_pos = { p.getRow(), p.getCol() };
+
+		auto moves = p.pseudoLegalMoves();
+
+		for (auto end : moves) {
+			MoveInfo move;
+			move.piece = &p;
+			move.move = { start_pos, end };
+			white_moves.emplace_back(move);
+		}
+	}
+
+	return white_moves;
+
+
+}
+std::vector<ClassicChess::MoveInfo> ClassicChess::getBlackPseudoMoves() {
+	std::vector<MoveInfo> black_moves;
+
+	for (Piece& p : blackPieces) {
+
+		if (p.captured) {
+			continue;
+		}
+
 		std::array<int, 2> start_pos = { p.getRow(), p.getCol() };
 
 
@@ -146,51 +170,48 @@ void ClassicChess::generateLegalMoves() {
 			MoveInfo move;
 			move.piece = &p;
 			move.move = { start_pos, end };
-
-			//filter white moves by check
-			
-			BoardState states = virtualMove(move);
-			if (states.whiteChecked) {
-				continue;
-			} else {
-				white_moves.emplace_back(move);
-			}
+			black_moves.emplace_back(move);
 
 		}
 	}
+	return black_moves;
+}
+
+
+//updates moves
+void ClassicChess::generateLegalMoves() {
+
+	whiteMoves = getWhitePseudoMoves();
+	blackMoves = getBlackPseudoMoves();
+	
+
+	for (int i{}; i < whiteMoves.size();) {
+			
+		bool legal = virtualMove(whiteMoves[i]);
+
+		if (!legal) {
+			std::cout << "checked" << std::endl;
+			whiteMoves.erase(whiteMoves.begin() + i);
+		} else {
+			i++;
+		}
+	}
+	
 
 
 	// get all pseudo Black moves
 
-	std::vector<MoveInfo> black_moves;
+	for (int i{}; i < blackMoves.size();) {
 
-	for (Piece& p : blackPieces) {
-		std::array<int, 2> start_pos = { p.getRow(), p.getCol() };
-
-
-		auto moves = p.pseudoLegalMoves();
-
-		for (auto end : moves) {
-			MoveInfo move;
-			move.piece = &p;
-			move.move = { start_pos, end };
-
-
-			BoardState states = virtualMove(move);
-			if (states.blackChecked) {
-				continue;
-			} else {
-				black_moves.emplace_back(move);
-			}
-
+		bool legal = virtualMove(blackMoves[i]);
+		if (!legal) {
+			std::cout << "checked" << std::endl;
+			blackMoves.erase(blackMoves.begin() + i);
+		}
+		else {
+			i++;
 		}
 	}
-
-
-
-	//link to main 
-	this->blackMoves = black_moves;
-	this->whiteMoves = white_moves;
 
 }
 
@@ -199,8 +220,10 @@ bool ClassicChess::verifyPick(int r, int c){
 	if ((r>=8 || r < 0) || (c>=8 || c < 0)) {
 		return false;
 	}
-
+	
+	
 	if (board[r][c]) {
+		
 		if (board[r][c]->getColor() == white_move)
 		{
 			return true;
@@ -217,13 +240,12 @@ bool ClassicChess::verifyMove(int r, int c, Piece* piece){
 		return false;
 	}
 
-
-	std::cout<<"exists";
+	
 	if (white_move) {
 		for (auto move: this->whiteMoves) {
 
 			if (move.piece == piece) {
-				std::cout<<"macthes";
+				
 				auto coords = move.move[1];
 				std::cout<<r<<c<<coords[0]<<coords[1]<<std::endl;					
 				if ((coords[0] == r) && (coords[1] == c)) {
@@ -233,18 +255,38 @@ bool ClassicChess::verifyMove(int r, int c, Piece* piece){
 
 		}
 	}
-	
+	else {
+
+		for (auto move : this->blackMoves) {
+
+			if (move.piece == piece) {
+				
+				auto coords = move.move[1];
+				std::cout << r << c << coords[0] << coords[1] << std::endl;
+				if ((coords[0] == r) && (coords[1] == c)) {
+					return true;
+				}
+			}
+
+		}
+	}
 	
 	return false;
 
 }
 
-ClassicChess::BoardState ClassicChess::move_turn() {
+bool ClassicChess::move_turn() {
 
 	int req_row;
 	int req_col;
 
 	std::cout<<"Pick Piece:"<<std::endl;
+	if (white_move) {
+		std::cout << "WHITE MOVE" << std::endl;
+	}
+	else {
+		std::cout << "BLACK" << std::endl;
+	}
 
 	std::cout<<"row : ";
 	std::cin>>req_row;
@@ -299,10 +341,47 @@ ClassicChess::BoardState ClassicChess::move_turn() {
 
 
 	//happens if eveyrhing is succesful
-	this->move(req_row, req_col, move_row, move_col);
+	this->real_move(req_row, req_col, move_row, move_col);
+	
+	return true;
 
 
 };
+
+
+
+ClassicChess::OutCome ClassicChess::gameLoop() {
+
+	initClassicGame();
+
+	while (this->game.active) {
+		printBoard();
+		generateLegalMoves();
+		printAllMoves();
+
+		//white always starts
+		bool turn = move_turn();
+		if (turn) {
+
+
+			iterator += 1;
+			if (white_move) {
+				white_move = false;
+			}
+			else {
+				white_move = true;
+			}
+		}
+	}
+	//for now
+	return Draw;
+}
+
+
+
+
+
+
 
 
 
