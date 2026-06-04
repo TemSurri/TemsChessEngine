@@ -2,6 +2,8 @@
 #include "vector"
 #include <iostream>
 
+//SET UP
+
 Piece* ClassicChess::storePiece(int r, int c, PieceType type) {
 
 	// assume row greater than 4 is white
@@ -60,6 +62,28 @@ void ClassicChess::initClassicGame() {
 			}
 		};
 	};
+
+}
+
+//MOVE GENERATION
+
+// changing the current system from expenisve look into the future to using an outward king detection and a pin check.
+bool ClassicChess::is_checked(bool is_white) {
+	// horizontal right
+	
+	if (is_white) {
+		Piece* king = whiteKing;
+	} else {
+		
+	}
+
+
+
+}
+
+
+bool ClassicChess::is_pinned(Piece& p) {
+
 
 }
 
@@ -214,6 +238,10 @@ void ClassicChess::generateLegalMoves() {
 	}
 
 }
+
+
+//GAME SEQUENCE
+
 
 bool ClassicChess::verifyPick(int r, int c){
 

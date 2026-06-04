@@ -124,13 +124,16 @@ class ClassicChess {
 		}
 
 		Piece* storePiece(int r, int c, PieceType type);
+		bool is_checked(bool is_white);
 		bool check(bool for_white);
 		void generateLegalMoves();
 		void populateMoves();
 		void initClassicGame();
 		std::vector<MoveInfo> getBlackPseudoMoves();
 		std::vector<MoveInfo> getWhitePseudoMoves();
+	
 
+		bool is_pinned(Piece& p);
 		bool virtualMove(MoveInfo move);
 		BoardState calculateState();
 		OutCome gameLoop();
