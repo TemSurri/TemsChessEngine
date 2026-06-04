@@ -350,8 +350,6 @@ vector< std::array<int, 2>> Piece::horseMovement() {
 };
 
 vector< std::array<int, 2>> Piece::pseudoLegalMoves() {
-
-
 	switch (type) {
 
 	case(PieceType::Bishop):
