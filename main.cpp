@@ -5,14 +5,11 @@
 
 
 
-int main(){
+int main() {
+    ClassicChess g;
 
-	ClassicChess g = ClassicChess();
+    g.gameLoop();
 
-	
-	auto game = g.gameLoop();
-	
-	return 0;
-	
-};
+    return 0;
+}
 
