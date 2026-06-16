@@ -2,27 +2,15 @@
 #include <vector>
 #include "piece.h"
 #include <array>
+#include <variant>
 
 class ClassicChess {
-
-
-	struct BoardState {
-		bool draw = false;
-
-		bool whiteCheckMated = false;
-		bool blackCheckMated = false;
-
-		bool whiteChecked = false;
-		bool blackChecked = false;
-
-		bool normal = false;
-		bool active = true;
-	};
 
 	enum OutCome {
 		WhiteWin,
 		BlackWin,
-		Draw
+		Draw,
+		Normal
 	};
 
 	// stores ptr to piece and all its moves
@@ -34,7 +22,7 @@ class ClassicChess {
 	};
 
 	private:
-		BoardState game;
+		bool game = true;
 		bool white_upper = true;
 		int iterator{};
 
@@ -63,7 +51,148 @@ class ClassicChess {
 			
 		};
 
-		//helper functions
+		//move
+
+		void final_move(Piece* p, MoveEndpoint move ) {
+			int ogR = p->getRow();
+			int ogC = p->getCol();
+			int newR = move.r;
+			int newC = move.c;
+
+			if (move.fashion == CASTLE) {
+				//do castle
+			
+				// add or subtract 2 fromt king col
+				// rooks new col = king col + or minus 2
+
+				// depends on if rook col > other col
+
+				//idneitfy the rook
+				Piece* rookToCastle = board[newR][newC];
+				board[newR][newC] = nullptr;
+
+				board[ogR][ogC] = nullptr;
+
+				if (newC > ogC) {
+					// rook is to the right of the king
+					board[ogR][ogC + 2] = p;
+					p->move(ogR, ogC + 2);
+					p->incrementMove();
+
+					board[ogR][ogC + 2 - 1] = rookToCastle;
+					rookToCastle->move(ogR, ogC + 2 - 1);
+					rookToCastle->incrementMove();
+
+				}
+				else {
+					// rook is to the right of the king
+					board[ogR][ogC - 2] = p;
+					p->move(ogR, ogC - 2);
+					p->incrementMove();
+
+					board[ogR][ogC - 2 + 1] = rookToCastle;
+					rookToCastle->move(ogR, ogC - 2 + 1);
+					rookToCastle->incrementMove();
+
+				}
+
+				return;
+			}
+
+
+			if (board[newR][newC]) {
+				board[newR][newC]->captured = true;
+			}
+
+			board[ogR][ogC]->incrementMove();
+			board[ogR][ogC]->move(newR, newC);
+			board[newR][newC] = board[ogR][ogC];
+
+
+			board[ogR][ogC] = nullptr;
+			if (move.fashion == PAWN_PROMOTION) {
+				p->changeType(PieceType::Queen);
+			}
+			
+			// auto empties old spot isnt accurate for castling
+		};
+		void undo_move(Piece* p, MoveEndpoint end, Piece* taken, std::array<int, 2> start) {
+			int newR = end.r;
+			int newC = end.c;
+
+
+			if (end.fashion == CASTLE && taken) {
+				//remove the caslte things
+				board[end.r][end.c] = taken;
+				board[start[0]][start[1]] = p;
+				p->move(start[0], start[1]);
+				p->deincrementMove();
+
+				// in this case the taken is the rook that moved
+				taken->move(end.r, end.c);
+				taken->deincrementMove();
+
+				// clear the moved spots
+				if (newC > start[1]) {
+					// rook is to the right of the king
+					board[start[0]][start[1] + 2] = nullptr;
+
+					board[start[0]][start[1] + 2 - 1] = nullptr;
+
+				}
+				else {
+					// rook is to the right of the king
+					board[start[0]][start[1] - 2] = nullptr;
+
+
+					board[start[0]][start[1] - 2 + 1] = nullptr;
+
+				}
+
+				return;
+			}
+
+			if (end.fashion == PAWN_PROMOTION) {
+
+				if (taken) {
+					taken->captured = false;
+				}
+
+				p->changeType(Pawn);
+				board[end.r][end.c] = taken;
+				board[start[0]][start[1]] = p;
+				p->move(start[0], start[1]);
+				p->deincrementMove();
+
+				return;
+
+			}
+
+			// might laso just encompass undo castle logic
+			if (end.fashion == STANDARD) {
+
+				if (taken) {
+					taken->captured = false;
+				}
+
+				board[end.r][end.c] = taken;
+				board[start[0]][start[1]] = p;
+				p->move(start[0], start[1]);
+				p->deincrementMove();
+
+				return;
+			}
+
+		}
+		
+		//debug / helpers
+		void printMoves(vector<array<int, 2>> list) {
+
+			for (int i{}; i < list.size(); i++) {
+				cout << "(" << list[i][0] << ", " << list[i][1] << ") " << endl;
+			}
+		}
+		void printAllMoves();
 		void printBoard() {
 			for (int r{}; r < BOARDROWS; r++) {
 				for (int c{}; c < BOARDCOLS; c++) {
@@ -79,62 +208,11 @@ class ClassicChess {
 			};
 
 
-			
+
 			return;
 		};
 
-		
-		void real_move(int ogR, int ogC, int newR, int newC) {
-			if (board[newR][newC]) {
-				board[newR][newC]->captured = true;
-			}
 
-			board[ogR][ogC]->incrementMove();
-			board[ogR][ogC]->move(newR, newC);
-			board[newR][newC] = board[ogR][ogC];
-
-			board[ogR][ogC] = nullptr;
-			// auto empties old spot isnt accurate for castling
-		};
-
-		void final_move(Piece& p, MoveEndpoint move ) {
-			int ogR = p.getRow();
-			int ogC = p.getCol();
-			int newR = move.r;
-			int newC = move.c;
-
-
-			if (board[newR][newC]) {
-				board[newR][newC]->captured = true;
-			}
-
-			board[ogR][ogC]->incrementMove();
-			board[ogR][ogC]->move(newR, newC);
-			board[newR][newC] = board[ogR][ogC];
-
-
-			board[ogR][ogC] = nullptr;
-			if (move.fashion == PAWN_PROMOTION) {
-				p.changeType(Queen);
-			}
-			if (move.fashion == CASTLE) {
-				//do castle
-				std::cout << "do castle move";
-			}
-			
-			// auto empties old spot isnt accurate for castling
-		};
-
-		
-
-		void printMoves(vector<array<int, 2>> list) {
-
-			for (int i{}; i < list.size(); i++) {
-				cout << "(" << list[i][0] << ", " << list[i][1] << ") " << endl;
-			}
-		}
-
-		void printAllMoves();
 		//setup
 		Piece* storePiece(int r, int c, PieceType type);
 		void initClassicGame();
@@ -152,12 +230,34 @@ class ClassicChess {
 
 		bool is_pinned(Piece& p);
 		bool virtualMoveCauseCheck(MoveSet move);
-		BoardState calculateState();
-		OutCome gameLoop();
-		BoardState move( bool white );
+
+		//Game Logic
+		OutCome calculateState() {
+			//
+			if (white_move) {
+				if (legalWhiteMoves.size() == 0) {
+					if (is_checked(true)) {
+						return BlackWin;
+					}
+					return Draw;
+				}
+			}
+			else {
+				if (legalBlackMoves.size() == 0) {
+					if (is_checked(false)) {
+						return WhiteWin;
+					}
+					return Draw;
+				}
+			}
+
+			return Normal;
+
+		};
+		void gameLoop();
 		bool move_turn();
 		bool verifyPick(int r, int c);
-		bool verifyMove(int r, int c, Piece* piece);
+		std::variant<bool, MoveEndpoint> verifyMove(int r, int c, Piece* piece);
 
 		// everything should end up private escpet the final startGame()
 

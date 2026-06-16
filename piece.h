@@ -36,8 +36,8 @@ public:
 		this->c = y;
 	};
 
-	void changeType(PieceType type) {
-		type = type;
+	void changeType(PieceType t) {
+		this->type = t;
 	}
 
 	int getType() {
