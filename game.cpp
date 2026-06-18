@@ -125,7 +125,7 @@ static int knightOffsets[8][2] {
 
 };
 
-// checks if current board state is check for the is_white.
+// checks if current board state is check for the is_white. false it checks if black is checked for true it checks for white
 bool ClassicChess::is_checked(bool is_white) {
 	
 	// horizontal right
@@ -139,6 +139,15 @@ bool ClassicChess::is_checked(bool is_white) {
 
 	int r = king->getRow();
 	int c = king->getCol();
+	
+	if (is_attacked(r, c, is_white)) {
+		return true;
+	}
+
+	return false;
+}
+
+bool ClassicChess::is_attacked(int r, int c, bool is_white) {
 	
 	PieceType enemy;
 
@@ -438,67 +447,54 @@ void ClassicChess::filterMoveSet(ClassicChess::MoveSet& move) {
 
 // populates legalBlackMoves and legalWhiteMoves
 void ClassicChess::generateLegalMoves() {
-
-	legalBlackMoves.clear();
 	legalWhiteMoves.clear();
-
-	auto whiteMoves = getWhitePseudoMoves();
-	auto blackMoves = getBlackPseudoMoves();
-
-	bool isWhiteChecked = is_checked(true);
-	bool isBlackChecked = is_checked(false);
+	legalBlackMoves.clear();
 	
-	for (int i{}; i < whiteMoves.size(); i++) {
+	if (white_move) {
+		//legalWhiteMoves.clear();
+		auto whiteMoves = getWhitePseudoMoves();
+		bool isWhiteChecked = is_checked(true);
 
-		if (isWhiteChecked) {
-			filterMoveSet(whiteMoves[i]);
-			if (whiteMoves[i].moves.size() == 0) {
-				continue;
-			}
-			else {
-				legalWhiteMoves.push_back(whiteMoves[i]);
-			}
-		}
-		else {
-			if (!is_pinned((*whiteMoves[i].piece))) {
-				// cant affect king if moved
-				legalWhiteMoves.push_back(whiteMoves[i]);
+		
+		for (int i{}; i < whiteMoves.size(); i++) {
 
-			}
-			
-			else {
-				// if it is a possible pin then check if move will result in check
+			if (isWhiteChecked) {
 				filterMoveSet(whiteMoves[i]);
-
 				if (whiteMoves[i].moves.size() == 0) {
 					continue;
-
 				}
 				else {
 					legalWhiteMoves.push_back(whiteMoves[i]);
 				}
 			}
-		}
-	}
-
-	for (int i{}; i < blackMoves.size(); i++) {
-		if (isBlackChecked) {
-			filterMoveSet(blackMoves[i]);
-
-			if (blackMoves[i].moves.size() == 0) {
-				continue;
-			}
 			else {
-				legalBlackMoves.push_back(blackMoves[i]);
+				if (!is_pinned((*whiteMoves[i].piece))) {
+					// cant affect king if moved
+					legalWhiteMoves.push_back(whiteMoves[i]);
+
+				}
+				
+				else {
+					// if it is a possible pin then check if move will result in check
+					filterMoveSet(whiteMoves[i]);
+
+					if (whiteMoves[i].moves.size() == 0) {
+						continue;
+
+					}
+					else {
+						legalWhiteMoves.push_back(whiteMoves[i]);
+					}
+				}
 			}
 		}
-		else {
-			if (!is_pinned(*blackMoves[i].piece)) {
-				legalBlackMoves.push_back(blackMoves[i]);
 
-			}
-			else {
-				// if it is a possible pin then check if move will result in check
+	} else {
+		//legalBlackMoves.clear();
+		auto blackMoves = getBlackPseudoMoves();
+		bool isBlackChecked = is_checked(false);
+		for (int i{}; i < blackMoves.size(); i++) {
+			if (isBlackChecked) {
 				filterMoveSet(blackMoves[i]);
 
 				if (blackMoves[i].moves.size() == 0) {
@@ -506,6 +502,23 @@ void ClassicChess::generateLegalMoves() {
 				}
 				else {
 					legalBlackMoves.push_back(blackMoves[i]);
+				}
+			}
+			else {
+				if (!is_pinned(*blackMoves[i].piece)) {
+					legalBlackMoves.push_back(blackMoves[i]);
+
+				}
+				else {
+					// if it is a possible pin then check if move will result in check
+					filterMoveSet(blackMoves[i]);
+
+					if (blackMoves[i].moves.size() == 0) {
+						continue;
+					}
+					else {
+						legalBlackMoves.push_back(blackMoves[i]);
+					}
 				}
 			}
 		}
@@ -677,6 +690,7 @@ void ClassicChess::gameLoop() {
 		printAllMoves();
 
 		auto outCome = calculateState();
+		std::cout <<"outcome : "<< outCome << endl;
 		if (outCome != Normal) {
 			if (outCome == BlackWin) {
 				std::cout << "Black wins by checkmate\n";

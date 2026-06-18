@@ -231,6 +231,8 @@ class ClassicChess {
 		bool is_pinned(Piece& p);
 		bool virtualMoveCauseCheck(MoveSet move);
 
+		bool is_attacked(int r, int c, bool is_white);
+
 		//Game Logic
 		OutCome calculateState() {
 			//
