@@ -399,6 +399,67 @@ vector< std::array<int, 2>> Piece::pseudoLegalMoves() {
 	}
 }
 
+vector<std::array<int, 2>> Piece::getEnPassent() {
+	// you have to call this on certain so u ensure this works onle for enemy double
+	// chech right
+
+	int j = upper ?  1 : -1;
+
+	vector<std::array<int, 2>> theoretical_moves;
+
+	if (type != Pawn && (moves != 2 && moves != 3)){
+		return theoretical_moves;
+	}
+
+	// check right
+	if (c+1 < 7) {
+		// in bound
+
+		Piece* p = board[r][c+1];
+		if (p) {
+
+			if ((p->getColor() != is_white && p->getType() == Pawn) && p->getTimesMoved() == 1) {
+				
+				int row = r + j;
+				int col = c+1;
+				
+				if (!(board[row][col])) {
+					theoretical_moves.push_back({row, col});
+
+				}
+
+			}
+			// check
+		}
+	}
+
+	//check left
+	if (c-1 > 0) {
+		Piece* p = board[r][c-1];
+		if (p) {
+
+			if ((p->getColor() != is_white && p->getType() == Pawn) && p->getTimesMoved() == 1) {
+
+				int row = r + j;
+				int col = c-1;
+
+				if (!(board[row][col])) {
+					theoretical_moves.push_back({row, col});
+
+				}
+
+			}
+			// check
+		}
+
+	}
+
+	return theoretical_moves;
+
+
+
+}
+
 vector< std::array<int, 2>> Piece::getCastledMoves() {
 	vector< std::array<int, 2>> theoretical_moves;
 

@@ -24,7 +24,8 @@ enum PieceType {
 enum MoveFashion : int {
 	STANDARD,
 	CASTLE,
-	PAWN_PROMOTION
+	PAWN_PROMOTION,
+	EN_PASSENT
 
 };
 

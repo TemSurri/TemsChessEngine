@@ -76,5 +76,6 @@ public:
 	// will be dependant on the type
 	vector< std::array<int, 2>> pseudoLegalMoves();
 	vector< std::array<int, 2>> getCastledMoves();
+	vector< std::array<int, 2>> getEnPassent();
 
 };

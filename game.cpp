@@ -356,6 +356,19 @@ std::vector<ClassicChess::MoveSet> ClassicChess::getWhitePseudoMoves() {
 			}
 		}
 
+		if (p.getType() == Pawn && ((p.getTimesMoved() == 2 || p.getTimesMoved() == 3))) {
+
+			for (auto end : p.getEnPassent()) {
+				MoveEndpoint e;
+				e.r = end[0];
+				e.c = end[1];
+				e.fashion = EN_PASSENT;
+				move.moves.emplace_back(e);
+
+			}
+
+		}
+
 		white_moves.emplace_back(move);
 	}
 
@@ -408,6 +421,19 @@ std::vector<ClassicChess::MoveSet> ClassicChess::getBlackPseudoMoves() {
 				move.moves.emplace_back(e);
 
 			}
+		}
+
+		if (p.getType() == Pawn && ((p.getTimesMoved() == 2 || p.getTimesMoved() == 3))) {
+
+			for (auto end : p.getEnPassent()) {
+				MoveEndpoint e;
+				e.r = end[0];
+				e.c = end[1];
+				e.fashion = EN_PASSENT;
+				move.moves.emplace_back(e);
+
+			}
+
 		}
 
 		black_moves.emplace_back(move);
@@ -465,12 +491,6 @@ void ClassicChess::filterMoveSet(ClassicChess::MoveSet& move, bool kingInCheck) 
 
 
 }
-
-
-
-
-
-
 
 // populates legalBlackMoves and legalWhiteMoves
 void ClassicChess::generateLegalMoves() {
