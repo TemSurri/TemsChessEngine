@@ -108,18 +108,34 @@ class ClassicChess {
 			board[ogR][ogC]->move(newR, newC);
 			board[newR][newC] = board[ogR][ogC];
 
-
 			board[ogR][ogC] = nullptr;
+
 			if (move.fashion == PAWN_PROMOTION) {
 				p->changeType(PieceType::Queen);
 			}
+
+			if (move.fashion == EN_PASSENT) {
+
+				board[ogR][newC] = nullptr;
+
+			};
 			
 			// auto empties old spot isnt accurate for castling
 		};
+
 		void undo_move(Piece* p, MoveEndpoint end, Piece* taken, std::array<int, 2> start) {
 			const int newR = end.r;
 			const int newC = end.c;
 
+			if (end.fashion == EN_PASSENT) {
+
+				board[end.r][start[1]] = taken;
+				board[start[0]][start[1]] = p;
+
+				p->move(start[0], start[1]);
+				p->deincrementMove();	
+				
+			};
 
 			if (end.fashion == CASTLE && taken) {
 				//remove the caslte things
