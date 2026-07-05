@@ -846,9 +846,10 @@ void ClassicChess::gameLoopVSminimaxAI(bool whiteIsAi, int depth) {
 
 		bool ai_move = (whiteIsAi == white_move);
 		if (ai_move) {
+			
 			auto bestMove = getBestMove(depth, (white_move == whiteMaximizing));
 			final_move(bestMove.move);
-
+			
 
 			//ai move
 
@@ -874,7 +875,32 @@ void ClassicChess::gameLoopVSminimaxAI(bool whiteIsAi, int depth) {
 	}
 }
 
+void ClassicChess::resetSearchStats() {
+	stats = SearchStats{};
+}
 
+void ClassicChess::printSearchStats(int depth) {
+
+	std::cout << "\n===== SEARCH STATS =====\n";
+	std::cout << "Depth:          " << depth << '\n';
+	std::cout << "Time:           " << stats.elapsedMs << " ms\n";
+	std::cout << "Nodes:          " << stats.nodes << '\n';
+	std::cout << "Leaf Nodes:     " << stats.leafNodes << '\n';
+	std::cout << "Cutoffs:        " << stats.alphaBetaCutoffs << '\n';
+	std::cout << "TT Hits:        " << stats.ttHits << '\n';
+	std::cout << "TT Stores:      " << stats.ttStores << '\n';
+
+	if (stats.elapsedMs > 0.0) {
+		double nps =
+			stats.nodes / (stats.elapsedMs / 1000.0);
+
+		std::cout << "Nodes/sec:      "
+			<< static_cast<uint64_t>(nps)
+			<< '\n';
+	}
+
+	std::cout << "========================\n";
+}
 
 
 

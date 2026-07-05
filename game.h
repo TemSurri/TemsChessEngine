@@ -132,6 +132,21 @@ class ClassicChess {
 		// can generate hash itself : main function to add to TT
 		void cacheEntryTT(const MoveEndpoint& move, int score, int depth, bool maximizing, bool pruned);
 
+		struct SearchStats {
+			uint64_t nodes = 0;
+			uint64_t leafNodes = 0;
+			uint64_t alphaBetaCutoffs = 0;
+			uint64_t ttHits = 0;
+			uint64_t ttStores = 0;
+
+			double elapsedMs = 0.0;
+		};
+
+		SearchStats stats;
+
+		void resetSearchStats();
+		void printSearchStats(int depth);
+
 	public:
 
 		ClassicChess() {

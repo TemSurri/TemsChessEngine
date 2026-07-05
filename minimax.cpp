@@ -2,6 +2,7 @@
 #include "gameInfo.h"
 #include <array>
 #include <algorithm>
+#include <chrono>
 
 // in the index order of my enum in 
 constexpr std::array<int, 7> pieceValues = {
@@ -37,6 +38,9 @@ int ClassicChess::evaluateBoard() {
 // big issue array circular dependence
 ClassicChess::EvaluatedMove ClassicChess::getBestMove(int depth, bool whiteToMove) {
     // moves already generated
+    resetSearchStats();
+    auto start = std::chrono::high_resolution_clock::now();
+
 
     int alpha = -100000;
     int beta = 100000;
@@ -91,14 +95,21 @@ ClassicChess::EvaluatedMove ClassicChess::getBestMove(int depth, bool whiteToMov
         }
 
     }
+    auto end = std::chrono::high_resolution_clock::now();
+
+    stats.elapsedMs =
+        std::chrono::duration<double, std::milli>(end - start).count();
+    printSearchStats(depth);
 
     return best;
 
 }
 
 int ClassicChess::minimax(int depth, bool whiteToMove, int alpha, int beta) {
-    
+    stats.nodes++;
+
     if (depth == 0) {
+        stats.leafNodes++;
         return evaluateBoard();
     }
 
@@ -154,6 +165,7 @@ int ClassicChess::minimax(int depth, bool whiteToMove, int alpha, int beta) {
                 }
 
                 if (alpha >= beta) {
+                    stats.alphaBetaCutoffs++;
                     return best;
                 }
 
@@ -200,6 +212,7 @@ int ClassicChess::minimax(int depth, bool whiteToMove, int alpha, int beta) {
                 }
 
                 if (beta <= alpha) {
+                    stats.alphaBetaCutoffs++;
                     return best;
                 }
 
@@ -292,6 +305,7 @@ std::array<ClassicChess::MoveSet,4> ClassicChess::GenerateOrderedLegalMoves(bool
     for (int i{}; i < pmoves.size(); i++) {
 
         if (pmoves[i].moves.size() == 0) {
+      
             continue;
         }
 
