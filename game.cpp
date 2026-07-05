@@ -630,24 +630,26 @@ void ClassicChess::filterMoveSet(ClassicChess::MoveSet& move, bool kingInCheck, 
 
 //GAME SEQUENCE------------
 
-ClassicChess::OutCome ClassicChess::calculateState() {
-	if (white_move) {
-		if (legalMoves.size() == 0) {
-			if (is_checked(true)) {
-				return BlackWin;
-			}
-			return Draw;
+bool ClassicChess::hasLegalMoves() {
+	for (const auto& batch : legalMoves) {
+		if (!batch.moves.empty()) {
+			return true;
 		}
+	}
+	return false;
+}
+
+ClassicChess::OutCome ClassicChess::calculateState() {
+	if (hasLegalMoves()) {
+		return Normal;
+	}
+
+	if (white_move) {
+		return is_checked(true) ? BlackWin : Draw;
 	}
 	else {
-		if (legalMoves.size() == 0) {
-			if (is_checked(false)) {
-				return WhiteWin;
-			}
-			return Draw;
-		}
+		return is_checked(false) ? WhiteWin : Draw;
 	}
-	return Normal;
 }
 
 bool ClassicChess::verifyPick(int r, int c){

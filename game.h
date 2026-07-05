@@ -97,6 +97,7 @@ class ClassicChess {
 		bool virtualMoveCauseCheck(MoveSet move);
 
 		//Game Logic
+		bool hasLegalMoves();
 		OutCome calculateState();
 		bool move_turn();
 		bool verifyPick(int r, int c);
