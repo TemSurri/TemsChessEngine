@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <chrono>
 
-// in the index order of my enum in 
+//HEURISTICS -----------
+
+// value of pieces
 constexpr std::array<int, 7> pieceValues = {
     0,
     100,
@@ -15,6 +17,7 @@ constexpr std::array<int, 7> pieceValues = {
     20000
 };
 
+// simple heurisitc for board value
 int ClassicChess::evaluateBoard() {
     int boardValue{};
 
@@ -34,6 +37,10 @@ int ClassicChess::evaluateBoard() {
 
     return boardValue;
 }
+
+//SEARCH PROCESS -----------------
+
+// wraps root search for iterative deepening
 ClassicChess::EvaluatedMove ClassicChess::getBestMoveIterative(int maxDepth, bool whiteToMove) {
     resetSearchStats();
 
@@ -75,12 +82,9 @@ ClassicChess::EvaluatedMove ClassicChess::getBestMoveIterative(int maxDepth, boo
 
     return best;
 }
-// big issue array circular dependence
-ClassicChess::EvaluatedMove ClassicChess::searchRoot(int depth, bool whiteToMove) {
-    // moves already generated
-    //resetSearchStats();
-    //auto start = std::chrono::high_resolution_clock::now();
 
+// initial root search that begins recrusive search
+ClassicChess::EvaluatedMove ClassicChess::searchRoot(int depth, bool whiteToMove) {
 
     int alpha = -100000;
     int beta = 100000;
@@ -135,16 +139,12 @@ ClassicChess::EvaluatedMove ClassicChess::searchRoot(int depth, bool whiteToMove
         }
 
     }
-    //auto end = std::chrono::high_resolution_clock::now();
-
-    //stats.elapsedMs =
-        //std::chrono::duration<double, std::milli>(end - start).count();
-    //printSearchStats(depth);
 
     return best;
 
 }
 
+// recursively searches at a depth to find best move
 int ClassicChess::minimax(int depth, bool whiteToMove, int alpha, int beta) {
     stats.nodes++;
     if (depth == 0) {
@@ -189,7 +189,6 @@ int ClassicChess::minimax(int depth, bool whiteToMove, int alpha, int beta) {
     entry.whitemove = whiteToMove;
    
     //generate moves
-    // it will generate the moves for the side that is max or min depending on input
     auto legal_moves_node = GenerateOrderedLegalMoves(whiteToMove, orderTT, cached.id == key);
     int best;
     
@@ -198,7 +197,6 @@ int ClassicChess::minimax(int depth, bool whiteToMove, int alpha, int beta) {
     bool maximizing = (whiteToMove == whiteMaximizing);
 
     if (maximizing) {
-
         
         bool hasMoves = false;
 
@@ -209,23 +207,14 @@ int ClassicChess::minimax(int depth, bool whiteToMove, int alpha, int beta) {
             }
         }
 
-        // dont need to cache these
         if (!hasMoves) {
             if (is_checked(whiteToMove)) {
                 return -100000; //checkmated
             }
             return 0; // stalemate
         }
-
-        //alpha = vsmall#
-        best = -100000;
-        //for move in moves
-        //  do move
-        //  beta = minimax(move, p, depth-1, !maximizing)
-        //  undo move
-        //  if beta is larger than alpha, beta is new alpha
-       
-
+        
+        best = -100000;           
 
         for (auto& move : legal_moves_node) {
             for (auto& endpoint : move.moves) {
@@ -249,7 +238,6 @@ int ClassicChess::minimax(int depth, bool whiteToMove, int alpha, int beta) {
                 if (alpha >= beta) {
                     stats.alphaBetaCutoffs++;
 
-
                     //  cache as lowerbound
                     entry.bound_type = LOWER_BOUND;
                     entry.score = best;
@@ -267,9 +255,7 @@ int ClassicChess::minimax(int depth, bool whiteToMove, int alpha, int beta) {
 
     }
     else {
-        //alpha = vbig#
-        // basicaly same as top
-
+        
         bool hasMoves = false;
 
         for (const auto& batch : legal_moves_node) {
@@ -307,7 +293,6 @@ int ClassicChess::minimax(int depth, bool whiteToMove, int alpha, int beta) {
                 if (beta <= alpha) {
                     stats.alphaBetaCutoffs++;
 
-
                     //  cache as upper bound
                     entry.bound_type = UPPER_BOUND;
                     entry.score = best;
@@ -316,8 +301,6 @@ int ClassicChess::minimax(int depth, bool whiteToMove, int alpha, int beta) {
                     stats.ttStores++;
                     return best;
                 }
-
-
             }
         }
 
@@ -331,6 +314,8 @@ int ClassicChess::minimax(int depth, bool whiteToMove, int alpha, int beta) {
     stats.ttStores++;
     return best;
 }
+
+//TT TABLE ----------
 
 // generate a unique hash from board state
 uint64_t ClassicChess::getHashCode(bool whitemove) {
@@ -360,8 +345,7 @@ uint64_t ClassicChess::getHashCode(bool whitemove) {
     return hash;
 };
 
-// later use bucketed to opt if needed
-// also i need to ensure 
+// add entry to TT table
 void ClassicChess::cacheEntryTT(TTEntry entry) {
     uint64_t key = getHashCode(entry.whitemove);
     int index = key % TTsize;
@@ -377,8 +361,9 @@ void ClassicChess::cacheEntryTT(TTEntry entry) {
 
 };
 
-// will decipher whether or not move is one of TT, capture, km, quiet
-// if capture, befor the function returns it will by ref change the value of the move object
+//MOVE ORDERING --------
+
+// analyze which batch a move belongs in
 ClassicChess::MoveBunch ClassicChess::analyzeMove(MoveEndpoint& move, const MoveEndpoint TTmove, bool isTT) {
 
 
@@ -425,6 +410,7 @@ ClassicChess::MoveBunch ClassicChess::analyzeMove(MoveEndpoint& move, const Move
 
 }
 
+// generate an array with movesets ordered by TT move, Captures, Killer Moves, Quiet Moves
 std::array<ClassicChess::MoveSet,4> ClassicChess::GenerateOrderedLegalMoves(bool is_white, const MoveEndpoint TTmove, bool isTT) {
 
     bool isChecked = is_checked(is_white);
@@ -469,4 +455,35 @@ std::array<ClassicChess::MoveSet,4> ClassicChess::GenerateOrderedLegalMoves(bool
     return orderedLegalMoves;
 
 
+}
+
+// LOGS & BENCHMARK TESTING ------------
+
+//clear ai search stats 
+void ClassicChess::resetSearchStats() {
+    stats = SearchStats{};
+}
+
+//print ai search stats
+void ClassicChess::printSearchStats(int depth) {
+
+    std::cout << "\n===== SEARCH STATS =====\n";
+    std::cout << "Depth:          " << depth << '\n';
+    std::cout << "Time:           " << stats.elapsedMs << " ms\n";
+    std::cout << "Nodes:          " << stats.nodes << '\n';
+    std::cout << "Leaf Nodes:     " << stats.leafNodes << '\n';
+    std::cout << "Cutoffs:        " << stats.alphaBetaCutoffs << '\n';
+    std::cout << "TT Hits:        " << stats.ttHits << '\n';
+    std::cout << "TT Stores:      " << stats.ttStores << '\n';
+
+    if (stats.elapsedMs > 0.0) {
+        double nps =
+            stats.nodes / (stats.elapsedMs / 1000.0);
+
+        std::cout << "Nodes/sec:      "
+            << static_cast<uint64_t>(nps)
+            << '\n';
+    }
+
+    std::cout << "========================\n";
 }

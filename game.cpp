@@ -102,6 +102,7 @@ void ClassicChess::initClassicGame() {
 
 //BOARD/PIECE OPERATIONS ---------------------
 
+// updates the board with a move and returns a move record
 ClassicChess::MoveRecord ClassicChess::final_move(const MoveEndpoint& move ) {
 
 			const int ogR = move.p->getRow();
@@ -207,6 +208,7 @@ ClassicChess::MoveRecord ClassicChess::final_move(const MoveEndpoint& move ) {
 			
 		};
 
+// updates the board by undoing a move from its record
 void ClassicChess::undo_move(MoveRecord record) {
 			
 			
@@ -301,7 +303,7 @@ void ClassicChess::undo_move(MoveRecord record) {
 
 //MOVE GENERATION------------
 
-//vectors
+//directional vector
 static int directions[8][2] = {
 
 		{0, -1},
@@ -315,6 +317,7 @@ static int directions[8][2] = {
 
 	};
 
+//knight movement
 static int knightOffsets[8][2] {
 
 		{1, -2},
@@ -328,7 +331,7 @@ static int knightOffsets[8][2] {
 
 };
 
-// checks if current board state is check for the is_white. false it checks if black is checked for true it checks for white
+//check if king sqaure is attacked
 bool ClassicChess::is_checked(bool is_white) {
 	
 	// horizontal right
@@ -350,6 +353,7 @@ bool ClassicChess::is_checked(bool is_white) {
 	return false;
 }
 
+//check if a certain square is attacked
 bool ClassicChess::is_attacked(int r, int c, bool is_white) {
 	
 	PieceType enemy;
@@ -488,7 +492,7 @@ bool ClassicChess::is_attacked(int r, int c, bool is_white) {
 
 }
 
-// check if a piece is in same row / col or diag as its king.
+//check if its possible for a piece to be a pinned piece
 bool ClassicChess::is_pinned(Piece& p) {
 
 	Piece* king = p.getColor() ? whiteKing : blackKing;
@@ -514,7 +518,7 @@ bool ClassicChess::is_pinned(Piece& p) {
 
 }
 
-// NEW DUAL DYANIUMCI MOVES
+//generate all pseudo legal moves, returns a moveSet, of a piece and its moves
 std::vector<ClassicChess::MoveSet> ClassicChess::getPseudoMoves(std::vector<Piece>& pieces) {
 	
 	std::vector<MoveSet> pseudo_moves;
@@ -580,7 +584,7 @@ std::vector<ClassicChess::MoveSet> ClassicChess::getPseudoMoves(std::vector<Piec
 	return pseudo_moves;
 }
 
-// calls is_pinned + is_checked on a moveSet to see if it is LEGAL by simulating the move and then undoing it
+//calls is_pinned + is_checked on a moveSet to see if it is LEGAL by simulating the move and then undoing it
 void ClassicChess::filterMoveSet(ClassicChess::MoveSet& move, bool kingInCheck, Piece* piece) {
 
 	std::array<int,2> start = { piece->getRow() , piece->getCol() };
@@ -630,6 +634,7 @@ void ClassicChess::filterMoveSet(ClassicChess::MoveSet& move, bool kingInCheck, 
 
 //GAME SEQUENCE------------
 
+//checks if there are legal moves available
 bool ClassicChess::hasLegalMoves() {
 	for (const auto& batch : legalMoves) {
 		if (!batch.moves.empty()) {
@@ -639,6 +644,7 @@ bool ClassicChess::hasLegalMoves() {
 	return false;
 }
 
+//calcaultes game state
 ClassicChess::OutCome ClassicChess::calculateState() {
 	if (hasLegalMoves()) {
 		return Normal;
@@ -652,6 +658,7 @@ ClassicChess::OutCome ClassicChess::calculateState() {
 	}
 }
 
+//validate user input to pick
 bool ClassicChess::verifyPick(int r, int c){
 	
 	if ((r>=8 || r < 0) || (c>=8 || c < 0)) {
@@ -673,6 +680,7 @@ bool ClassicChess::verifyPick(int r, int c){
 
 }
 
+//validate user input to pick to move
 std::variant<bool, MoveEndpoint> ClassicChess::verifyMove(int r, int c, Piece* piece){
 
 	if ((r>=8 || r < 0) || (c>=8 || c < 0)) {
@@ -697,6 +705,7 @@ std::variant<bool, MoveEndpoint> ClassicChess::verifyMove(int r, int c, Piece* p
 
 }
 
+//player turn
 bool ClassicChess::move_turn() {
 
 	int req_row;
@@ -771,6 +780,7 @@ bool ClassicChess::move_turn() {
 
 };
 
+//regular pvp gameloop
 void ClassicChess::gameLoop() {
 
 	initClassicGame();
@@ -820,6 +830,7 @@ void ClassicChess::gameLoop() {
 	}
 }
 
+//ai vs player gameloop
 void ClassicChess::gameLoopVSminimaxAI(bool whiteIsAi, int depth) {
 
 	initClassicGame();
@@ -831,7 +842,7 @@ void ClassicChess::gameLoopVSminimaxAI(bool whiteIsAi, int depth) {
 		std::cout << "VALUE OF BOARD:" << evaluateBoard() << std::endl;
 		printBoard();
 
-		
+
 		uint64_t key = getHashCode(white_move);
 		TTEntry& cached = transpositionalTable[key % TTsize];
 
@@ -867,10 +878,10 @@ void ClassicChess::gameLoopVSminimaxAI(bool whiteIsAi, int depth) {
 
 		bool ai_move = (whiteIsAi == white_move);
 		if (ai_move) {
-			
+
 			auto bestMove = getBestMoveIterative(depth, white_move);
 			final_move(bestMove.move);
-			
+
 
 			//ai move
 
@@ -878,7 +889,7 @@ void ClassicChess::gameLoopVSminimaxAI(bool whiteIsAi, int depth) {
 		else {
 
 			bool turn = move_turn();
-			
+
 
 
 		}
@@ -895,36 +906,6 @@ void ClassicChess::gameLoopVSminimaxAI(bool whiteIsAi, int depth) {
 		// calgulare the state
 	}
 }
-
-void ClassicChess::resetSearchStats() {
-	stats = SearchStats{};
-}
-
-void ClassicChess::printSearchStats(int depth) {
-
-	std::cout << "\n===== SEARCH STATS =====\n";
-	std::cout << "Depth:          " << depth << '\n';
-	std::cout << "Time:           " << stats.elapsedMs << " ms\n";
-	std::cout << "Nodes:          " << stats.nodes << '\n';
-	std::cout << "Leaf Nodes:     " << stats.leafNodes << '\n';
-	std::cout << "Cutoffs:        " << stats.alphaBetaCutoffs << '\n';
-	std::cout << "TT Hits:        " << stats.ttHits << '\n';
-	std::cout << "TT Stores:      " << stats.ttStores << '\n';
-
-	if (stats.elapsedMs > 0.0) {
-		double nps =
-			stats.nodes / (stats.elapsedMs / 1000.0);
-
-		std::cout << "Nodes/sec:      "
-			<< static_cast<uint64_t>(nps)
-			<< '\n';
-	}
-
-	std::cout << "========================\n";
-}
-
-
-
 
 
 
