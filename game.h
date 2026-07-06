@@ -5,6 +5,7 @@
 #include <variant>
 #include <unordered_map>
 #include <cstdint>
+#include <random>
 
 // to do organize code to only need to use one array, and is turn thats all
 
@@ -16,8 +17,6 @@ class ClassicChess {
 		Draw,
 		Normal
 	};
-
-
 
 	enum MoveBunch :int {
 		TT,
@@ -87,8 +86,6 @@ class ClassicChess {
 		// checks if quadrant is attacked
 		bool is_attacked(int r, int c, bool is_white);
 
-		
-
 		std::vector<MoveSet> getPseudoMoves(std::vector<Piece>& pieces);
 	
 		// piece aready passed in these 3 so no need to pass in turn
@@ -103,7 +100,41 @@ class ClassicChess {
 		bool verifyPick(int r, int c);
 		std::variant<bool, MoveEndpoint> verifyMove(int r, int c, Piece* piece);
 
-		// ai stuff
+		// MINIMAX AI STUFF
+		// TT caching
+		uint64_t zobristID[64][2][6];
+		uint64_t white_move_key;
+		uint64_t random_u64() {
+			static std::random_device rd;
+			static std::mt19937_64 rng(rd());
+			static std::uniform_int_distribution<uint64_t> dist;
+
+			return dist(rng);
+		}
+		void initZobrist() {
+			white_move_key = random_u64();
+
+
+			for (int spot{}; spot < 64; spot++) {
+
+				for (int color{}; color < 2; color++) {
+					for (int piece{}; piece < 6; piece++) {
+
+						zobristID[spot][color][piece] = random_u64();
+
+
+					}
+				}
+			}
+		}
+
+		bool sameMove(const MoveEndpoint& a,
+			const MoveEndpoint& b) const
+		{
+			return a.p == b.p &&
+				a.r == b.r &&
+				a.c == b.c;
+		}
 
 		enum FLAG {
 			EXACT,
@@ -112,25 +143,29 @@ class ClassicChess {
 		};
 
 		struct TTEntry {
+			uint64_t id;
+			bool whitemove;
 			MoveEndpoint move;
 			int depth;
 			int score;
 			FLAG bound_type;
 		};
 
-
+		// MOVE ORDERING
 		int evaluateBoard();
-		MoveBunch analyzeMove(MoveEndpoint& move);
-		EvaluatedMove getBestMove(int depth, bool maximizing);
+		MoveBunch analyzeMove(MoveEndpoint& move, const MoveEndpoint TTmove, bool isTT);
+		EvaluatedMove searchRoot(int depth, bool whiteToMove);
+		EvaluatedMove getBestMoveIterative(int maxDepth, bool whiteToMove);
 		int minimax(int depth, bool maximizing, int alpha, int beta);
 		const int whiteMaximizing = true;
 		
-		std::array<MoveSet, 4> GenerateOrderedLegalMoves(bool is_white);
-	
-		uint64_t getHashCode();
-		std::unordered_map<uint64_t, TTEntry> transpositionalTable;
+		std::array<MoveSet, 4> GenerateOrderedLegalMoves(bool is_white, const MoveEndpoint TTmove, bool isTT);
+		
+		static constexpr size_t TTsize = 1 << 20;
+		uint64_t getHashCode(bool whitemove);
+		std::vector< TTEntry> transpositionalTable;
 		// can generate hash itself : main function to add to TT
-		void cacheEntryTT(const MoveEndpoint& move, int score, int depth, bool maximizing, bool pruned);
+		void cacheEntryTT(TTEntry entry);
 
 		struct SearchStats {
 			uint64_t nodes = 0;
@@ -149,8 +184,8 @@ class ClassicChess {
 
 	public:
 
-		ClassicChess() {
-			
+		ClassicChess() :transpositionalTable(TTsize) {
+
 		};
 
 		//move

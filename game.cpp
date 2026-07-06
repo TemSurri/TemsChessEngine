@@ -779,7 +779,12 @@ void ClassicChess::gameLoop() {
 
 		std::cout << "VALUE OF BOARD:" << evaluateBoard() << std::endl;
 		printBoard();
-		legalMoves = GenerateOrderedLegalMoves(white_move);
+
+
+
+
+
+		legalMoves = GenerateOrderedLegalMoves(white_move, MoveEndpoint{}, false);
 		printAllMoves();
 
 		auto outCome = calculateState();
@@ -818,12 +823,28 @@ void ClassicChess::gameLoop() {
 void ClassicChess::gameLoopVSminimaxAI(bool whiteIsAi, int depth) {
 
 	initClassicGame();
+	initZobrist();
+
 
 	while (this->game) {
 
 		std::cout << "VALUE OF BOARD:" << evaluateBoard() << std::endl;
 		printBoard();
-		legalMoves = GenerateOrderedLegalMoves(white_move);
+
+		
+		uint64_t key = getHashCode(white_move);
+		TTEntry& cached = transpositionalTable[key % TTsize];
+
+		bool hasTT = (key == cached.id);
+
+		MoveEndpoint orderTT{};
+		if (hasTT) {
+			orderTT = cached.move;
+		}
+
+
+
+		legalMoves = GenerateOrderedLegalMoves(white_move, orderTT, hasTT);
 		printAllMoves();
 
 		auto outCome = calculateState();
@@ -847,7 +868,7 @@ void ClassicChess::gameLoopVSminimaxAI(bool whiteIsAi, int depth) {
 		bool ai_move = (whiteIsAi == white_move);
 		if (ai_move) {
 			
-			auto bestMove = getBestMove(depth, (white_move == whiteMaximizing));
+			auto bestMove = getBestMoveIterative(depth, white_move);
 			final_move(bestMove.move);
 			
 

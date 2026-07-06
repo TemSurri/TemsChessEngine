@@ -39,7 +39,6 @@ struct MoveEndpoint {
 	int c;
 	MoveFashion fashion;
 	int value;
-
 	Piece* p;
 
 };
