@@ -3,6 +3,96 @@
 #include <iostream>
 #include <variant>
 
+
+
+void ClassicChess::generate_pawn_moves(std::vector<Move>& moves, bool white)
+{
+	// congif based on color
+	uint64_t pawns = white ? w_pawns : b_pawns;
+	const PieceTypeBit pawnType = white ? W_PAWN : B_PAWN;
+	const int forward = white ? NORTH : SOUTH;
+	const int startMin = white ? 8 : 48;  //rows in which they start (essnetially they starting pos)
+	const int startMax = white ? 15 : 55;
+
+	const uint64_t enemy = white ? b_occupancy : w_occupancy;
+
+	while (pawns)
+	{
+		//FORWARD MOVEMENT
+		//returns the from while removing it from the copied pawns
+		int from = pop_lsb(pawns);
+
+		int oneForward = from + forward;
+
+		if (oneForward >= 0 && oneForward < 64 && is_set(empty, oneForward)) // enforces forward movement on an empty position within the board 
+		{
+			add_move(moves, from, oneForward, pawnType);
+
+			int twoForward = from + 2 * forward;
+
+			if (from >= startMin && from <= startMax && is_set(empty, twoForward))
+			{
+				add_move(moves, from, twoForward, pawnType);
+			}
+		}
+
+		//CAPTURE LOGIC
+		int capLeft = white ? from + NORTH_WEST : from + SOUTH_WEST;
+		int capRight = white ? from + NORTH_EAST : from + SOUTH_EAST;
+
+		if ((from % 8 != 0) && capLeft >= 0 && capLeft < 64 && is_set(enemy, capLeft)) // enforces capture movement on an occupaied enemy position within the board
+		{
+			add_move(moves, from, capLeft, pawnType);
+		}
+
+		if ((from % 8 != 7) && capRight >= 0 && capRight < 64 && is_set(enemy, capRight))
+		{
+			add_move(moves, from, capRight, pawnType);
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //DEBUG----------------------
 void ClassicChess::printAllMoves() {
 

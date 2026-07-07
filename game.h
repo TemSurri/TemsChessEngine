@@ -554,6 +554,7 @@ class ClassicChess {
 		std::vector<Move> generate_pseudo_moves(bool whiteToMove)
 		{
 			std::vector<Move> moves;
+			moves.reserve(218); // reserve 218 thats the max # a baord state can have, this is just to avoid heap allocations
 
 			updateOccupancy();
 
@@ -579,14 +580,25 @@ class ClassicChess {
 			return moves;
 		}
 
-		void generate_pawn_moves(std::vector<Move>& moves, bool is_white) {
-
-		};
+		void generate_pawn_moves(std::vector<Move>& moves, bool is_white);
 		//void generate_knight_moves(std::vector<Move>& moves, bool is_white);
 		//void generate_bishop_moves(std::vector<Move>& moves, bool is_white);
 		//void generate_rook_moves(std::vector<Move>& moves, bool is_white);
 		//void generate_queen_moves(std::vector<Move>& moves, bool is_white);
 		//void generate_king_moves(std::vector<Move>& moves, bool is_white);
 		
+		// removes the lowest right most bit. 
+		inline int pop_lsb(uint64_t& bitboard)
+		{
+			int square = std::countr_zero(bitboard); //finds where the lowest right most bit is
+			bitboard &= bitboard - 1; //pops it from the passed in board
+			return square;
+		}
+
+		// is there a piece on this square on this bitboard?
+		inline bool is_set(uint64_t bitboard, int square)
+		{
+			return (bitboard >> square) & 1ULL;
+		}
 		
 };
