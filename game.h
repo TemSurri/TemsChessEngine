@@ -60,23 +60,23 @@ class ClassicChess {
 		bool white_move = true;
 		int iterator{};
 
+		//need to be replaced ----------------------------------------------
 		Piece* board[BOARDROWS][BOARDCOLS]{nullptr};
-
 		Piece* blackKing{ nullptr };
 		Piece* whiteKing{ nullptr };
 
 		// stores only moveable pieces and their respective moves
 		std::array<MoveSet, 4> legalMoves{};
 
-		// actually store pieces
+		//need to be replaced ----------------------------------------------
 		std::vector<Piece> whitePieces;
 		std::vector<Piece> blackPieces;
 
-		//all board manipulation
+		//refactor 
 		MoveRecord final_move(const MoveEndpoint& move);
 		void undo_move(MoveRecord record);
 
-		//setup
+		//need to be replaced ----------------------------------------------
 		Piece* storePiece(int r, int c, PieceType type);
 		void initClassicGame();
 
@@ -86,14 +86,16 @@ class ClassicChess {
 		// checks if quadrant is attacked
 		bool is_attacked(int r, int c, bool is_white);
 
+		//refactor 
 		std::vector<MoveSet> getPseudoMoves(std::vector<Piece>& pieces);
 	
-		// piece aready passed in these 3 so no need to pass in turn
+		//refactor 
 		void filterMoveSet(MoveSet& move, bool kingInCheck, Piece* piece);
 		bool is_pinned(Piece& p);
 		bool virtualMoveCauseCheck(MoveSet move);
 
 		//Game Logic
+		//refactor  maybe
 		bool hasLegalMoves();
 		OutCome calculateState();
 		bool move_turn();
@@ -102,6 +104,7 @@ class ClassicChess {
 
 		// MINIMAX AI STUFF
 		// TT caching
+		//refactor
 		uint64_t zobristID[64][2][6];
 		uint64_t white_move_key;
 		uint64_t random_u64() {
@@ -152,6 +155,7 @@ class ClassicChess {
 		};
 
 		// MOVE ORDERING
+		//refactor
 		int evaluateBoard();
 		MoveBunch analyzeMove(MoveEndpoint& move, const MoveEndpoint& TTmove, bool isTT, int depth);
 		EvaluatedMove searchRoot(int depth, bool whiteToMove);

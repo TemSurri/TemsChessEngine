@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <iterator>
 
-
+// need to be deleted or refactored completely
 
 vector<std::array<int, 2>> Piece::oneStep() {
 
