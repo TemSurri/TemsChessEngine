@@ -1,16 +1,52 @@
 #pragma once
 #include <vector>
-#include "piece.h"
 #include <array>
 #include <variant>
 #include <unordered_map>
 #include <cstdint>
 #include <bit>
 #include <random>
+#include <iostream>
 
 // to do organize code to only need to use one array, and is turn thats all
 
 class ClassicChess {
+
+	enum PieceTypeBit {
+		NO_PIECE,
+		W_PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
+		B_PAWN, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING
+	};
+
+	enum MoveType {
+		NORMAL_MOVE,
+		PROMOTION_MOVE,
+		EN_PASSANT_MOVE,
+		CASTLING_MOVE
+	};
+
+	struct Move {
+		int from;
+		int to;
+
+		PieceTypeBit moved;
+		PieceTypeBit captured = NO_PIECE;
+
+		MoveType type = NORMAL_MOVE;
+
+		int value;
+	};
+
+	struct MoveRecord {
+		Move move;
+
+		int oldEnPassantSquare;
+
+		bool oldWhiteCastleKingSide;
+		bool oldWhiteCastleQueenSide;
+		bool oldBlackCastleKingSide;
+		bool oldBlackCastleQueenSide;
+	};
 
 	enum OutCome {
 		WhiteWin,
@@ -27,28 +63,17 @@ class ClassicChess {
 	};
 
 	//multi purpose for move batches, TT, captures, killer moves, quiet moves. For orderingmoves in minimax
-	// stores ptr to piece and all its moves
 	struct MoveSet {
 		
 		
-		std::vector<MoveEndpoint> moves;
+		std::vector<Move> moves;
 		
 	};
 
 	struct EvaluatedMove {
 		// value of minimax after it was searched
 		int value;
-		MoveEndpoint move;
-
-	};
-
-	struct MoveRecord {
-
-		Piece* taken = nullptr;
-		Piece* moved = nullptr;
-		int startRow;
-		int startCol;
-		MoveEndpoint end;
+		Move move;
 
 	};
 
@@ -61,155 +86,7 @@ class ClassicChess {
 		bool white_move = true;
 		int iterator{};
 
-		//need to be replaced ----------------------------------------------
-		Piece* board[BOARDROWS][BOARDCOLS]{nullptr};
-		Piece* blackKing{ nullptr };
-		Piece* whiteKing{ nullptr };
-
-		// stores only moveable pieces and their respective moves
-		std::array<MoveSet, 4> legalMoves{};
-
-		//need to be replaced ----------------------------------------------
-		std::vector<Piece> whitePieces;
-		std::vector<Piece> blackPieces;
-
-		//refactor 
-		MoveRecord final_move(const MoveEndpoint& move);
-		void undo_move(MoveRecord record);
-
-		//need to be replaced ----------------------------------------------
-		Piece* storePiece(int r, int c, PieceType type);
-		void initClassicGame();
-
-		//move generation need to pass in turn for context
-		bool is_checked(bool is_white);
-		bool check(bool for_white);
-		// checks if quadrant is attacked
-		bool is_attacked(int r, int c, bool is_white);
-
-		//refactor 
-		std::vector<MoveSet> getPseudoMoves(std::vector<Piece>& pieces);
-	
-		//refactor 
-		void filterMoveSet(MoveSet& move, bool kingInCheck, Piece* piece);
-		bool is_pinned(Piece& p);
-		bool virtualMoveCauseCheck(MoveSet move);
-
-		//Game Logic
-		//refactor  maybe
-		bool hasLegalMoves();
-		
-		// MINIMAX AI STUFF
-		// TT caching
-		//refactor
-		uint64_t zobristID[64][2][6];
-		uint64_t white_move_key;
-		uint64_t random_u64() {
-			static std::random_device rd;
-			static std::mt19937_64 rng(rd());
-			static std::uniform_int_distribution<uint64_t> dist;
-
-			return dist(rng);
-		}
-		void initZobrist() {
-			white_move_key = random_u64();
-
-
-			for (int spot{}; spot < 64; spot++) {
-
-				for (int color{}; color < 2; color++) {
-					for (int piece{}; piece < 6; piece++) {
-
-						zobristID[spot][color][piece] = random_u64();
-
-
-					}
-				}
-			}
-		}
-
-		bool sameMove(const MoveEndpoint& a,
-			const MoveEndpoint& b) const
-		{
-			return a.p == b.p &&
-				a.r == b.r &&
-				a.c == b.c;
-		}
-
-		enum FLAG {
-			EXACT,
-			UPPER_BOUND,
-			LOWER_BOUND
-		};
-
-		struct TTEntry {
-			uint64_t id;
-			bool whitemove;
-			MoveEndpoint move;
-			int depth;
-			int score;
-			FLAG bound_type;
-		};
-
-		// MOVE ORDERING
-		//refactor
-		int evaluateBoard();
-		MoveBunch analyzeMove(MoveEndpoint& move, const MoveEndpoint& TTmove, bool isTT, int depth);
-		EvaluatedMove searchRoot(int depth, bool whiteToMove);
-		EvaluatedMove getBestMoveIterative(int maxDepth, bool whiteToMove);
-		int minimax(int depth, bool maximizing, int alpha, int beta);
-		const int whiteMaximizing = true;
-		
-		std::array<MoveSet, 4> GenerateOrderedLegalMoves(bool is_white, const MoveEndpoint& TTmove, bool isTT, int depth);
-		
-		static constexpr size_t TTsize = 1 << 20;
-		uint64_t getHashCode(bool whitemove);
-		std::vector< TTEntry> transpositionalTable;
-		// can generate hash itself : main function to add to TT
-		void cacheEntryTT(TTEntry entry);
-
-		struct SearchStats {
-			uint64_t nodes = 0;
-			uint64_t leafNodes = 0;
-			uint64_t alphaBetaCutoffs = 0;
-			uint64_t ttHits = 0;
-			uint64_t ttStores = 0;
-			uint64_t killerHits = 0;
-
-			double elapsedMs = 0.0;
-		};
-
-		SearchStats stats;
-
-		void resetSearchStats();
-		void printSearchStats(int depth);
-
-		//Killer moevs (quiet(non capture) moves that show some strat)
-		static constexpr int MAX_SEARCH_DEPTH = 10;
-
-		std::array<std::array<MoveEndpoint, 2>, MAX_SEARCH_DEPTH> killerMoves{};
-		std::array<std::array<bool, 2>, MAX_SEARCH_DEPTH> killerValid{};
-
-		bool isCaptureMove(const MoveEndpoint& move) const;
-		void storeKillerMove(const MoveEndpoint& move, int depth);
-		void clearKillerMoves();
-	public:
-
-		ClassicChess() :transpositionalTable(TTsize) {
-
-		};
-
-		//move
-		void printAllMoves();
-		void printBoard();
-
-		void gameLoop();
-		void gameLoopVSminimaxAI(bool whiteIsAi, int depth);
-
-
 		//curent bitboard implementation
-
-
 
 		uint64_t occupancy;
 		uint64_t empty;
@@ -229,40 +106,6 @@ class ClassicChess {
 		uint64_t b_rooks;
 		uint64_t b_knights;
 		uint64_t b_queen;
-
-		enum PieceTypeBit {
-			NO_PIECE,
-			W_PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
-			B_PAWN, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING
-		};
-
-		enum MoveType {
-			NORMAL_MOVE,
-			PROMOTION_MOVE,
-			EN_PASSANT_MOVE,
-			CASTLING_MOVE
-		};
-
-		struct Move {
-			int from;
-			int to;
-
-			PieceTypeBit moved;
-			PieceTypeBit captured = NO_PIECE;
-
-			MoveType type = NORMAL_MOVE;
-		};
-
-		struct BBMoveRecord {
-			Move move;
-
-			int oldEnPassantSquare;
-
-			bool oldWhiteCastleKingSide;
-			bool oldWhiteCastleQueenSide;
-			bool oldBlackCastleKingSide;
-			bool oldBlackCastleQueenSide;
-		};
 
 		int en_passant_square = -1;
 
@@ -306,9 +149,9 @@ class ClassicChess {
 			}
 		}
 
-		BBMoveRecord exec_move(const Move& move)
+		MoveRecord exec_move(const Move& move)
 		{
-			BBMoveRecord record;
+			MoveRecord record;
 			record.move = move;
 
 			record.oldEnPassantSquare = en_passant_square;
@@ -407,7 +250,7 @@ class ClassicChess {
 			return record;
 		}
 
-		void undo_move(const BBMoveRecord& record)
+		void undo_move(const MoveRecord& record)
 		{
 			const Move& move = record.move;
 
@@ -549,7 +392,7 @@ class ClassicChess {
 			updateOccupancy();
 
 		}
-		
+
 		void print_bitboard()
 		{
 			std::cout << "\n  A B C D E F G H\n";
@@ -644,18 +487,6 @@ class ClassicChess {
 			}
 		}
 
-		void test_in_main() {
-			init_knight_attacks();
-			init_king_attacks();
-			init_bitboard();
-
-			print_bitboard();
-
-
-			auto moves = generate_pseudo_moves(true);
-			print_moves(moves);
-		}
-
 		int inline row_col_to_square(int row, int col);
 
 		//MOVE GENERATION
@@ -691,7 +522,7 @@ class ClassicChess {
 
 			moves.push_back(m);
 		}
-		
+
 		bool is_own_piece(int square, bool white)
 		{
 			uint64_t mask = 1ULL << square;
@@ -738,7 +569,7 @@ class ClassicChess {
 
 			return moves;
 		}
-		
+
 		// MOVE GENERATION HELPERS VERY IMPORTANT
 		//-------------------------------------
 		// removes the lowest right most bit. 
@@ -755,8 +586,8 @@ class ClassicChess {
 			return (bitboard >> square) & 1ULL;
 		}
 		//-------------------------------------
-		
-		
+
+
 		//pawn logic
 		void add_pawn_move(std::vector<Move>& moves, int from, int to, PieceTypeBit pawnType)
 		{
@@ -990,8 +821,119 @@ class ClassicChess {
 
 			return false;
 		};
-
-
-
+		
+		// MINIMAX AI STUFF
+		// TT caching
 	
+		uint64_t zobristID[64][2][6];
+		uint64_t white_move_key;
+		uint64_t random_u64() {
+			static std::random_device rd;
+			static std::mt19937_64 rng(rd());
+			static std::uniform_int_distribution<uint64_t> dist;
+
+			return dist(rng);
+		}
+		void initZobrist() {
+			white_move_key = random_u64();
+
+
+			for (int spot{}; spot < 64; spot++) {
+
+				for (int color{}; color < 2; color++) {
+					for (int piece{}; piece < 6; piece++) {
+
+						zobristID[spot][color][piece] = random_u64();
+
+
+					}
+				}
+			}
+		}
+
+		bool sameMove(const Move& a,
+			const Move& b) const
+		{
+			return	a.to == b.to &&
+					a.from == b.from;
+		}
+
+		enum FLAG {
+			EXACT,
+			UPPER_BOUND,
+			LOWER_BOUND
+		};
+
+		struct TTEntry {
+			uint64_t id;
+			bool whitemove;
+			Move move;
+			int depth;
+			int score;
+			FLAG bound_type;
+		};
+
+		// MOVE ORDERING
+
+		int piece_value(PieceTypeBit piece) const;
+		int evaluateBoard();
+		MoveBunch analyzeMove(Move& move, const Move& TTmove, bool isTT, int depth);
+		EvaluatedMove searchRoot(int depth, bool whiteToMove, const std::array<ClassicChess::MoveSet, 4>& legalMoves);
+		EvaluatedMove getBestMoveIterative(int maxDepth, bool whiteToMove);
+		int minimax(int depth, bool maximizing, int alpha, int beta);
+		const int whiteMaximizing = true;
+		
+		std::array<MoveSet, 4> GenerateOrderedLegalMoves(bool is_white, const Move& TTmove, bool isTT, int depth);
+		
+		static constexpr size_t TTsize = 1 << 20;
+		void hash_piece_board(
+			uint64_t pieces,
+			int color,
+			int pieceIndex,
+			uint64_t& hash
+		);
+		uint64_t getHashCode(bool whitemove);
+		std::vector< TTEntry> transpositionalTable;
+		void cacheEntryTT(TTEntry entry);
+
+		struct SearchStats {
+			uint64_t nodes = 0;
+			uint64_t leafNodes = 0;
+			uint64_t alphaBetaCutoffs = 0;
+			uint64_t ttHits = 0;
+			uint64_t ttStores = 0;
+			uint64_t killerHits = 0;
+
+			double elapsedMs = 0.0;
+		};
+
+		SearchStats stats;
+
+		void resetSearchStats();
+		void printSearchStats(int depth);
+
+		static constexpr int MAX_SEARCH_DEPTH = 10;
+
+		std::array<std::array<Move, 2>, MAX_SEARCH_DEPTH> killerMoves{};
+		std::array<std::array<bool, 2>, MAX_SEARCH_DEPTH> killerValid{};
+
+		bool isCaptureMove(const Move& move) const;
+		void storeKillerMove(const Move& move, int depth);
+		void clearKillerMoves();
+	public:
+
+		ClassicChess() :transpositionalTable(TTsize) {
+
+		};
+
+		//move
+		void printAllMoves();
+		void printBoard();
+
+		void gameLoop();
+		void gameLoopVSminimaxAI(bool whiteIsAi, int depth);
+		bool move_turn();
+		std::variant<bool, Move> verifyMove(int from, int to);
+		bool verifyPick(int r, int c);
+		ClassicChess::OutCome calculateState();
 };

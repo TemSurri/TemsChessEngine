@@ -10,7 +10,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(Chess
     "main.cpp"
-    "piece.cpp"
     "game.cpp"
     "minimax.cpp"
 )
