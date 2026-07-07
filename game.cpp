@@ -52,9 +52,46 @@ void ClassicChess::generate_pawn_moves(std::vector<Move>& moves, bool white)
 	}
 }
 
+void ClassicChess::generate_knight_moves(std::vector<Move>& moves, bool white)
+{
+	uint64_t knights = white ? w_knights : b_knights;
+	uint64_t own = white ? w_occupancy : b_occupancy;
 
+	PieceTypeBit knightType = white ? W_KNIGHT : B_KNIGHT;
 
+	while (knights)
+	{
+		int from = pop_lsb(knights);
 
+		uint64_t targets = knight_attacks[from] & ~own; //removes all the targets that overlap with your own occupancy
+
+		while (targets)
+		{
+			int to = pop_lsb(targets);
+			add_move(moves, from, to, knightType);
+		}
+	}
+}
+
+void ClassicChess::generate_king_moves(std::vector<Move>& moves, bool white)
+{
+	uint64_t king = white ? w_king : b_king;
+	uint64_t own = white ? w_occupancy : b_occupancy;
+
+	PieceTypeBit kingType = white ? W_KING : B_KING;
+
+	if (!king) return;
+
+	int from = pop_lsb(king);
+
+	uint64_t targets = king_attacks[from] & ~own;
+
+	while (targets)
+	{
+		int to = pop_lsb(targets);
+		add_move(moves, from, to, kingType);
+	}
+}
 
 
 

@@ -348,6 +348,7 @@ class ClassicChess {
 		void init_bitboard() {
 			// clear boards
 
+
 			w_pawns = 0;
 			w_knights = 0;
 			w_bishops = 0;
@@ -492,6 +493,8 @@ class ClassicChess {
 		}
 
 		void test_in_main() {
+			init_knight_attacks();
+			init_king_attacks();
 			init_bitboard();
 
 			print_bitboard();
@@ -500,6 +503,8 @@ class ClassicChess {
 			auto moves = generate_pseudo_moves(true);
 			print_moves(moves);
 		}
+
+		//MOVE GENERATION
 
 		PieceTypeBit piece_on_square(int square)
 		{
@@ -551,6 +556,7 @@ class ClassicChess {
 			return empty & mask;
 		}
 
+
 		std::vector<Move> generate_pseudo_moves(bool whiteToMove)
 		{
 			std::vector<Move> moves;
@@ -561,31 +567,24 @@ class ClassicChess {
 			if (whiteToMove)
 			{
 				generate_pawn_moves(moves, true);
-				//generate_knight_moves(moves, true);
+				generate_knight_moves(moves, true);
 				//generate_bishop_moves(moves, true);
 				//generate_rook_moves(moves, true);
 				//generate_queen_moves(moves, true);
-				//generate_king_moves(moves, true);
+				generate_king_moves(moves, true);
 			}
 			else
 			{
 				generate_pawn_moves(moves, false);
-				//generate_knight_moves(moves, false);
+				generate_knight_moves(moves, false);
 				//generate_bishop_moves(moves, false);
 				//generate_rook_moves(moves, false);
 				//generate_queen_moves(moves, false);
-				//generate_king_moves(moves, false);
+				generate_king_moves(moves, false);
 			}
 
 			return moves;
 		}
-
-		void generate_pawn_moves(std::vector<Move>& moves, bool is_white);
-		//void generate_knight_moves(std::vector<Move>& moves, bool is_white);
-		//void generate_bishop_moves(std::vector<Move>& moves, bool is_white);
-		//void generate_rook_moves(std::vector<Move>& moves, bool is_white);
-		//void generate_queen_moves(std::vector<Move>& moves, bool is_white);
-		//void generate_king_moves(std::vector<Move>& moves, bool is_white);
 		
 		// removes the lowest right most bit. 
 		inline int pop_lsb(uint64_t& bitboard)
@@ -599,6 +598,72 @@ class ClassicChess {
 		inline bool is_set(uint64_t bitboard, int square)
 		{
 			return (bitboard >> square) & 1ULL;
+		}
+
+		void generate_pawn_moves(std::vector<Move>& moves, bool is_white);
+
+		void generate_knight_moves(std::vector<Move>& moves, bool is_white);
+		uint64_t knight_attacks[64];
+		// need to init at start of program
+		void init_knight_attacks()
+		{
+			for (int square = 0; square < 64; square++)
+			{
+				uint64_t attacks = 0ULL;
+
+				int rank = square / 8;
+				int file = square % 8;
+
+				const int dr[8] = { 2, 2, 1, 1, -1, -1, -2, -2 };
+				const int df[8] = { 1, -1, 2, -2, 2, -2, 1, -1 };
+
+				for (int i = 0; i < 8; i++)
+				{
+					int r = rank + dr[i];
+					int f = file + df[i];
+
+					if (r >= 0 && r < 8 && f >= 0 && f < 8)
+					{
+						int target = r * 8 + f;
+						attacks |= 1ULL << target;
+					}
+				}
+
+				knight_attacks[square] = attacks;
+			}
+		}
+
+		//void generate_bishop_moves(std::vector<Move>& moves, bool is_white);
+		//void generate_rook_moves(std::vector<Move>& moves, bool is_white);
+		//void generate_queen_moves(std::vector<Move>& moves, bool is_white);
+		void generate_king_moves(std::vector<Move>& moves, bool is_white);
+		uint64_t king_attacks[64];
+		// need to init at start of program
+		void init_king_attacks()
+		{
+			for (int square = 0; square < 64; square++)
+			{
+				uint64_t attacks = 0ULL;
+
+				int rank = square / 8;
+				int file = square % 8;
+
+				const int dr[8] = { 1, 1, 1, 0, 0, -1, -1, -1 };
+				const int df[8] = { -1, 0, 1, -1, 1, -1, 0, 1 };
+
+				for (int i = 0; i < 8; i++)
+				{
+					int r = rank + dr[i];
+					int f = file + df[i];
+
+					if (r >= 0 && r < 8 && f >= 0 && f < 8)
+					{
+						attacks |= 1ULL << (r * 8 + f);
+					}
+				}
+
+				king_attacks[square] = attacks;
+			}
 		}
 		
 };
