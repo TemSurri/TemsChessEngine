@@ -68,7 +68,7 @@ The amount of work being done dropped dramatically, even though each individual 
 
 Then I accidentally discovered one of the biggest performance improvements of the entire project...
 
-Compiling in **Release** instead of **Debug**.
+Compiling in **Release** instead of **Debug**. (lol)
 
 Without changing a single search algorithm, performance jumped from roughly:
 
