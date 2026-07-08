@@ -1,4 +1,4 @@
-# ♟️ C++ Chess Engine
+# Tem C++ Chess Engine
 
 A chess engine written completely from scratch in C++.
 
