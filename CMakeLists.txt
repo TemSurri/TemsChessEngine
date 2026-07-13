@@ -14,7 +14,7 @@ add_subdirectory(external/glfw/glfw-3.4)
 
 add_library(glad
     external/glad/src/glad.c
- "gui.h")
+ "gui/gui.h" "gui/shader.cpp" "gui/shader.h" "gui/ebo.h" "gui/ebo.cpp" "gui/vbo.cpp" "gui/vbo.h" "gui/vao.h" "gui/vao.cpp")
 
 target_include_directories(glad PUBLIC
     external/glad/include
@@ -24,11 +24,20 @@ add_executable(Chess
     main.cpp
     game.cpp
     minimax.cpp
-    gui.cpp
- "gui.h")
+    "gui/gui.cpp"
+ "gui/gui.h"
+     "gui/shader.cpp" "gui/shader.h" "gui/ebo.h" "gui/ebo.cpp" "gui/vbo.cpp" "gui/vbo.h" "gui/vao.h" "gui/vao.cpp")
 
 target_link_libraries(Chess PRIVATE
     glad
     glfw
     opengl32
+)
+
+
+add_custom_command(
+    TARGET Chess POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/resources"
+        "$<TARGET_FILE_DIR:Chess>/resources"
 )
