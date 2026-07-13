@@ -6,8 +6,10 @@
 
 
 int main() {
-    
-    gui();
+
+
+    GuiManager manager = GuiManager();
+    manager.guiMainLoop();
 
 
     return 0;

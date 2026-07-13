@@ -1,41 +1,76 @@
 #include "gui.h"
+#include <iostream>
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+GLFWwindow* GuiManager::guiWindowSetUp() {
 
-int gui()
-{
+    // init glfw
     if (!glfwInit()) {
-        return -1;
+        throw ErrorObj{ GLFW_FAILED_INIT , "glfw failed init"};
     }
 
-    GLFWwindow* window =
-        glfwCreateWindow(1000, 700, "Chess", nullptr, nullptr);
+    // give info to window creations
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    if (!window) {
-        glfwTerminate();
-        return -1;
+    //create window
+    GLFWwindow* window = glfwCreateWindow(800, 800, "Tem's Chess", NULL, NULL);
+    if (window == NULL) {
+        
+        ErrorObj error{ WINDOW_FAILED_INIT, "glfw window failed to create" };
+        throw error;
+
     }
 
-    glfwMakeContextCurrent(window);
+    return window;
 
-    if (!gladLoadGLLoader(
-        reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
+}
+
+void GuiManager::guiWindowCleanUp(GLFWwindow* window){
+
+    if (window != nullptr) {
         glfwDestroyWindow(window);
-        glfwTerminate();
-        return -1;
     }
-
-    while (!glfwWindowShouldClose(window)) {
-        glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-
-    glfwDestroyWindow(window);
     glfwTerminate();
 
+}
+
+int GuiManager::guiMainLoop()
+{
+    GLFWwindow* window = nullptr;
+
+    // window pbject should be successfuly pointed to by window 
+    try {
+        window = guiWindowSetUp();
+    }
+    catch (const ErrorObj& error) {
+
+        guiWindowCleanUp(window);
+        std::cout << error.error_msg << std::endl;
+        return -1;
+    }
+
+    // make openGl context connected to our window
+    glfwMakeContextCurrent(window);
+
+    // use glad to load openGl functions
+    gladLoadGL();
+    glViewport(0, 0, 800, 800);
+
+    glClearColor(0.42f, 0.13f, 0.11f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glfwSwapBuffers(window);
+    //--------------------------------------------
+
+    while (!glfwWindowShouldClose(window)) {
+
+        glfwPollEvents();
+
+
+
+    }
+
+    //clean up
+    guiWindowCleanUp(window);
     return 0;
 }
