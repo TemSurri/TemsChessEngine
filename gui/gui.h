@@ -154,7 +154,7 @@ private:
 
     // Human plays White by default.
     bool aiPlaysWhite = false;
-    int aiDepth = 2;
+    int aiDepth = 7; //---------------------------AI DEPTH 
 
     int selectedSquare = -1;
     bool leftMouseWasPressed = false;
