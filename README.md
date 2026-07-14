@@ -1,172 +1,128 @@
-# Tem C++ Chess Engin
+# Tem's C++ Chess Engine
 
-<img width="1038" height="766" alt="Screenshot 2026-07-14 174930" src="https://github.com/user-attachments/assets/ba6b46ae-a0ca-4ceb-9138-6431c150a071" />
-<img width="1110" height="705" alt="Screenshot 2026-07-14 174858" src="https://github.com/user-attachments/assets/b75c9f11-84bf-459e-bf87-cf11fd4bd63c" />
-<img width="1129" height="826" alt="Screenshot 2026-07-14 175309" src="https://github.com/user-attachments/assets/622801ad-dc28-4e3b-9eb6-09718a58125a" />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/ba6b46ae-a0ca-4ceb-9138-6431c150a071" width="31%">
+  <img src="https://github.com/user-attachments/assets/b75c9f11-84bf-459e-bf87-cf11fd4bd63c" width="31%">
+  <img src="https://github.com/user-attachments/assets/622801ad-dc28-4e3b-9eb6-09718a58125a" width="31%">
+</p>
 
-A chess engine written completely from scratch in C++.
+A chess engine built completely from scratch in **C++** with a custom **OpenGL GUI**.
 
-This project started as an attempt to rewrite my original Python chess engine, which worked... but only if you had the patience to wait **4–7 seconds** every time the AI wanted to think.
+Originally this project was just a rewrite of my high-school Python chess engine. The old engine worked... if you didn't mind waiting **4–7 seconds** every move.
 
-Instead of continuously adding features to a slow foundation, I decided to throw everything away and rebuild it properly.
+Instead of continuing to optimize it, I decided to rebuild the entire thing from scratch.
 
-Somewhere along the way, this turned into an obsession with making numbers go up.
-
----
-
-# Rewriting the Engine
-
-The original Python engine represented the board as a list of piece objects. Every time it needed to answer a simple question—*"Is there a piece on this square?"*—it had to iterate through every piece until it found one.
-
-That worked perfectly fine for playing chess.
-
-It didn't work very well when Minimax started evaluating **hundreds of thousands of positions** every move.
-
-For the rewrite, I wanted the board itself to answer those questions instantly.
-
-The new engine stores:
-
-* `board[8][8]` for constant-time square lookup
-* `whitePieces`
-* `blackPieces`
-
-Instead of repeatedly searching through every piece, the engine can directly index the board in **O(1)** time.
-
-This simple architectural change completely transformed the project. The AI that once needed **4–7 seconds** to make relatively shallow decisions suddenly became responsive enough that deeper searches were actually worth pursuing.
-
-Once I saw those improvements, chasing performance became the fun part.
+Somewhere along the way, it became an obsession with making numbers go up.
 
 ---
 
-# Chasing Bigger Numbers
+## Features
 
-With the engine architecture in a good place, I shifted my focus to the search algorithm.
-
-One optimization quickly turned into another.
-
-The engine gradually gained:
-
-* Alpha-Beta Pruning
-* Transposition Tables with Zobrist Hashing
-* Iterative Deepening
-* TT Move Ordering
-* Capture Move Ordering
-* Killer Move Heuristic
-
-I implemented each of these one at a time, benchmarking the engine after every addition.
-
-Before Alpha-Beta pruning, a **depth 5** search typically took **10–15 seconds**. **Depth 6** often took several minutes, and I honestly wasn't patient enough to find out how long depth 7 would take.
-
-After implementing the complete search stack, the results looked very different:
-
-* **Depth 5:** ~1–50 ms
-* **Depth 7:** ~3–5 seconds
-
-What's interesting is that none of these optimizations actually made the CPU process positions faster.
-
-Instead, they made the engine **search smarter**.
-
-Alpha-Beta pruning cuts away branches that can no longer influence the final result. Transposition Tables cache previously evaluated positions, avoiding repeated work. Iterative Deepening and move ordering help the engine discover strong candidate moves earlier, allowing even more branches to be pruned.
-
-The amount of work being done dropped dramatically, even though each individual position still cost roughly the same to evaluate.
-
-Then I accidentally discovered one of the biggest performance improvements of the entire project...
-
-Compiling in **Release** instead of **Debug**. (lol)
-
-Without changing a single search algorithm, performance jumped from roughly:
-
-**~100k nodes/sec**
-
-to nearly
-
-**800k nodes/sec**
-
-An almost **8× improvement**... thanks to checking the correct build configuration.
-
-Turns out the compiler had been doing a lot of the heavy lifting all along.
+- ♟️ Full legal move generation
+- 🏰 Castling, en passant, and promotion
+- 🔄 Make / Undo move system
+- 🌳 Minimax with Alpha-Beta pruning
+- ⚡ Iterative Deepening
+- 🧠 Transposition Tables with Zobrist Hashing
+- 🎯 TT, Capture, and Killer move ordering
+- 💾 Bitboard board representation
+- 🖥️ Custom OpenGL GUI
+- 📊 Search profiling and benchmarking
 
 ---
 
-# Bitboards
+## Performance Journey
 
-By this point, I was happy with the search algorithm itself.
+The biggest improvements came from changing **how** the engine searched, not how fast the CPU was.
 
-The next bottleneck wasn't *how* the engine searched—it was simply **how fast each position could be processed**.
+I implemented and benchmarked each optimization individually:
 
-So I rewrote the board representation one final time using **bitboards**.
+- Alpha-Beta pruning
+- Transposition Tables
+- Zobrist Hashing
+- Iterative Deepening
+- Move Ordering
+- Killer Moves
+- Bitboards
 
-Instead of storing the board with arrays and object pointers, a bitboard represents piece locations inside a single `uint64_t`. This allows many common chess operations to be performed using fast bitwise instructions instead of loops and pointer lookups.
+One of the funniest improvements wasn't even algorithmic.
+
+Compiling in **Release** instead of **Debug** increased performance from roughly:
+
+```
+~100k nodes/sec
+```
+
+to
+
+```
+~800k nodes/sec
+```
+
+without changing a single line of search code.
+
+Turns out the compiler had been carrying me the whole time.
+
+---
+
+## Bitboards
+
+The final major rewrite replaced my array-based board with **bitboards**.
+
+Instead of repeatedly searching arrays and objects, each piece type is stored inside a `uint64_t`, allowing many board operations to become simple bitwise instructions.
 
 The search algorithm stayed exactly the same.
 
-The only goal was to make the existing engine process positions faster.
+The goal wasn't to search differently—it was simply to make every position cheaper to evaluate.
 
-That rewrite pushed performance to roughly:
+That pushed performance to roughly:
 
 **2.4M–3.8M nodes/sec**
 
-Depending on the position, that's roughly a **20×–60× improvement** compared to where this project originally began.
-
-Sometimes the best optimization isn't inventing a new algorithm.
-
-It's making the old one ridiculously fast.
+or about **20–60× faster** than where this project originally started.
 
 ---
 
-# Current Status
+## Benchmarks (Release)
 
-The engine currently supports:
+| Depth | Typical Time |
+|------:|-------------:|
+| 5 | ~0.01–0.04 s |
+| 6 | ~0.05–0.20 s |
+| 7 | ~0.2–1.3 s |
+| 8 | ~0.7–2.0 s |
 
-* Full legal move generation
-* Make / Undo move system
-* Minimax
-* Alpha-Beta Pruning
-* Iterative Deepening
-* Zobrist Hashing
-* Transposition Tables
-* TT Move Ordering
-* Capture Move Ordering
-* Killer Move Heuristic
-* Bitboard board representation
-* Search profiling and benchmarking
+Current search speed:
 
-### Current Release Benchmarks
-
-| Depth |                  Typical Time |
-| ----: | ----------------------------: |
-|     5 |                    ~0.1–0.4 s |
-|     6 |                    ~0.2-0.1 s |
-|     7 |                    ~0.2–1.3 s |
-|     8 | ~0.7–2 s (position dependent) |
-
-Current search throughput:
-
-* **2.4M–3.8M nodes/second**
-* **20×–60× faster** than where the project originally began
-* **~38× faster** than my optimized array-based Release implementation
+- **2.4M–3.8M nodes/sec**
+- **20–60× faster** than my original Python engine
+- **~38× faster** than my optimized array-based C++ implementation
 
 ---
 
-# Demo
+## What's Next?
 
-I'll upload a short video here once the OpenGL interface is finished.
+I'm currently polishing the OpenGL interface before moving on to stronger engine improvements.
 
-The plan is to have one of my low/mid-rated friends play against the engine so it can finally bully a real human instead of just my CPU.
+Some ideas I'd like to explore:
 
-*(Coming soon...)*
+- Magic Bitboards
+- Incremental Evaluation
+- Better Evaluation Function
+- Endgame Tablebases
+- Multithreading
+- Additional search optimizations
 
 ---
 
-# What's Next?
+## Demo
 
-For now, just a GUI.
+Gameplay video coming soon.
 
-The next step is building an **OpenGL interface** for the engine. Besides making the project much nicer to interact with, it will also serve as practice before I begin writing my own game engine from scratch.
+The plan is to have one of my low/mid-rated friends play against it so the engine can finally bully a real human instead of just my CPU.
 
-Could this engine be stronger? Absolutely.
+---
 
-There are still plenty of ideas worth exploring, magic bitboards, incremental evaluation, stronger evaluation functions, endgame tablebases, multithreading, and many more search optimizations, but I'm satisfied with where the project is today.
+This definitely isn't Stockfish.
 
-This aint so stockfish, but compared to my python chess engine i made in high-school, it might as well be.
-
+But compared to the Python chess engine I built in high school, it might as well be.
