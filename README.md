@@ -1,4 +1,8 @@
-# Tem C++ Chess Engine
+# Tem C++ Chess Engin
+
+<img width="1038" height="766" alt="Screenshot 2026-07-14 174930" src="https://github.com/user-attachments/assets/ba6b46ae-a0ca-4ceb-9138-6431c150a071" />
+<img width="1110" height="705" alt="Screenshot 2026-07-14 174858" src="https://github.com/user-attachments/assets/b75c9f11-84bf-459e-bf87-cf11fd4bd63c" />
+<img width="1129" height="826" alt="Screenshot 2026-07-14 175309" src="https://github.com/user-attachments/assets/622801ad-dc28-4e3b-9eb6-09718a58125a" />
 
 A chess engine written completely from scratch in C++.
 
