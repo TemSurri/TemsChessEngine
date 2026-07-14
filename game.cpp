@@ -1,11 +1,20 @@
 #include "game.h"
-#include "vector"
+
 #include <iostream>
 #include <variant>
+#include <vector>
+
+// =============================================================================
+// ClassicChess implementation
+//
+// This file contains board queries, move generation, legal-move filtering,
+// state changes, console game loops, and the small public API used by the GUI.
+// .
+// =============================================================================
 
 //MOVE GENERATION HELPERS -------------------------------------------
 
-ClassicChess::PieceTypeBit ClassicChess::piece_on_square(int square)
+ClassicChess::PieceTypeBit ClassicChess::piece_on_square(int square) const
 {
 	uint64_t mask = 1ULL << square;
 
@@ -65,7 +74,7 @@ inline bool ClassicChess::is_valid_slide(int from, int to, int dir)
 	return toFile == fromFile;
 }
 
-void ClassicChess::generate_sliding_moves( std::vector<Move>& moves, uint64_t pieces, bool is_white, PieceTypeBit pieceType, const int* dirs, int dirCount)
+void ClassicChess::generate_sliding_moves(std::vector<Move>& moves, uint64_t pieces, bool is_white, PieceTypeBit pieceType, const int* dirs, int dirCount)
 {
 	uint64_t own = is_white ? w_occupancy : b_occupancy;
 	uint64_t enemy = is_white ? b_occupancy : w_occupancy;
@@ -315,6 +324,7 @@ void ClassicChess::add_castling_moves(std::vector<Move>& moves, bool is_white)
 
 	if (is_white)
 	{
+
 		if (white_can_castle_kingside &&
 			(w_king & (1ULL << 4)) &&
 			(w_rooks & (1ULL << 7)) &&
@@ -1196,7 +1206,7 @@ void ClassicChess::gameLoopVSminimaxAI(bool whiteIsAi, int depth) {
 		if (hasTT) {
 			orderTT = cached.move;
 		}
-		
+
 		auto outCome = calculateState();
 		std::cout << "outcome : " << outCome << std::endl;
 		if (outCome != Normal) {
@@ -1241,5 +1251,94 @@ void ClassicChess::gameLoopVSminimaxAI(bool whiteIsAi, int depth) {
 	}
 }
 
+//gui access
+void ClassicChess::resetGame()
+{
+	init_bitboard();
+	updateOccupancy();
 
+	white_move = true;
+	game = true;
+	iterator = 0;
 
+	en_passant_square = -1;
+
+	white_can_castle_kingside = true;
+	white_can_castle_queenside = true;
+	black_can_castle_kingside = true;
+	black_can_castle_queenside = true;
+
+	clearKillerMoves();
+
+	for (TTEntry& entry : transpositionalTable)
+	{
+		entry = TTEntry{};
+	}
+
+	resetSearchStats();
+}
+
+bool ClassicChess::tryMove(int from, int to)
+{
+	if (from < 0 || from >= 64)
+		return false;
+
+	if (to < 0 || to >= 64)
+		return false;
+
+	// verifyMove already generates legal moves for the current side.
+	std::variant<bool, Move> result = verifyMove(from, to);
+
+	if (std::holds_alternative<bool>(result))
+	{
+		return false;
+	}
+
+	const Move move = std::get<Move>(result);
+
+	exec_move(move);
+
+	white_move = !white_move;
+	iterator++;
+
+	return true;
+}
+
+bool ClassicChess::isWhiteTurn() const
+{
+	return white_move;
+}
+
+ClassicChess::OutCome ClassicChess::getGameState()
+{
+	return calculateState();
+}
+
+bool ClassicChess::makeAIMove(int depth)
+{
+	const OutCome outcome = calculateState();
+
+	if (outcome != Normal)
+	{
+		return false;
+	}
+
+	const EvaluatedMove bestMove =
+		getBestMoveIterative(depth, white_move);
+
+	// This protects against an invalid result if no move was found.
+	if (bestMove.move.from < 0 ||
+		bestMove.move.from >= 64 ||
+		bestMove.move.to < 0 ||
+		bestMove.move.to >= 64)
+	{
+		return false;
+	}
+
+	exec_move(bestMove.move);
+
+	white_move = !white_move;
+	iterator++;
+
+	return true;
+}

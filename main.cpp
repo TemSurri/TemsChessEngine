@@ -1,14 +1,13 @@
 ﻿// main.cpp : Defines the entry point for the application.
 //
-
 #include "game.h"
-#include "gui.h"
+#include "gui/gui.h"
 
 
 int main() {
-    
-    gui();
 
+    GuiManager manager = GuiManager();
+    manager.guiMainLoop();
 
     return 0;
 }
