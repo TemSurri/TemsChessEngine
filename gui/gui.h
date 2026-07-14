@@ -19,41 +19,53 @@ class GuiManager {
 
 
 	public:
-		struct UVRegion
-		{
-			float uMin;
-			float vMin;
-			float uMax;
-			float vMax;
+		
+		// vertex pipeline
+		struct textured_vertex {
+
+			GLfloat x;
+			GLfloat y;
+			GLfloat z = 0.0f;
+
+			GLfloat u;
+			GLfloat v;
 		};
 
-		struct AtlasCell
-		{
-			int column;
-			int row;
+		struct colored_vertex {
+
+			GLfloat x;
+			GLfloat y;
+			GLfloat z = 0.0f;
+
+			GLfloat r;
+			GLfloat g;
+			GLfloat b;
 		};
 
-		struct Vertex
-		{
-			GLfloat x, y, z;
-			GLfloat u, v;
+		struct Color {
+			GLfloat r;
+			GLfloat g;
+			GLfloat b;
 		};
 
-		struct Square
-		{
-			std::array<Vertex, 4> vertices;
+		struct pieceText {
+
+			std::array<textured_vertex, 4> vertices;
+
 		};
 
-		struct RenderVertex
-		{
-			GLfloat x, y, z;
-			GLfloat u, v;
+		struct squareText {
+
+			std::array<colored_vertex, 4> vertices;
+
 		};
 
 
 
-
-
+		std::vector<colored_vertex> getVerticesForBoard();
+		std::vector<GLuint> getBoardIndices();
+		
+		std::vector<pieceText> getVerticesForPieces(ClassicChess& game);
 
 
 		int VIEWPORT_W = 800;
@@ -73,18 +85,7 @@ class GuiManager {
 		GuiManager() {
 
 		};
-		Square makeSquare(
-			float x,
-			float y,
-			float size,
-			const UVRegion& uv);
 
-		UVRegion getUVRegion(
-			int column,
-			int row);
-		
-		std::vector<RenderVertex> getChessGameBoardVertices(ClassicChess& game);
-		std::vector<GLuint> getChessGameBoardIndices();
 		static void framebufferSizeCallback(GLFWwindow* window,
 			int width,
 			int height);
@@ -93,9 +94,6 @@ class GuiManager {
 		GLFWwindow* guiWindowSetUp();
 		void guiWindowCleanUp(GLFWwindow* window);
 		int mouseToSquare(GLFWwindow* window);
-		AtlasCell getAtlasCell(
-			ClassicChess::PieceTypeBit piece,
-			bool darkSquare);
 
 
 };

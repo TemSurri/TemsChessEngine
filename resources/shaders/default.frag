@@ -1,12 +1,10 @@
 #version 330 core
 
-in vec2 TexCoord;
-
-uniform sampler2D chessAtlas;
+in vec3 vertexColor;
 
 out vec4 FragColor;
 
 void main()
 {
-    FragColor = texture(chessAtlas, TexCoord);
+    FragColor = vec4(vertexColor, 1.0);
 }
