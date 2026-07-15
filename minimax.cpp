@@ -103,6 +103,7 @@ ClassicChess::EvaluatedMove ClassicChess::getBestMoveIterative(int maxDepth, boo
         rootEntry.whitemove = whiteToMove;
         rootEntry.bound_type = EXACT;
         rootEntry.score = best.value;
+        rootEntry.id = key;
         rootEntry.move = best.move;
 
         cacheEntryTT(rootEntry);
